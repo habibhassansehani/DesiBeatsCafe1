@@ -14,6 +14,10 @@ run = ["npm", "run", "start"]
 localPort = 5000
 externalPort = 80
 
+[[ports]]
+localPort = 41851
+externalPort = 3001
+
 [env]
 PORT = "5000"
 
@@ -37,3 +41,9 @@ author = "agent"
 task = "shell.exec"
 args = "npm run dev"
 waitForPort = 5000
+
+[userenv]
+
+[userenv.shared]
+MONGO_URI = "mongodb+srv://Truepathtemp:Truepathtemp@rightpath.kdovr8j.mongodb.net/newdesiposnenen?retryWrites=true&w=majority"
+JWT_SECRET = "f182afd385e24c55786862148c54f874"
