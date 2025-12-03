@@ -1,0 +1,249 @@
+✅ DETAILED PROMPT FOR POS SYSTEM (Desi Beats Café)
+
+Title:
+Full-Featured POS System for Desi Beats Café (800+ Products, Table Management, Order Queue, Editable Orders, Taxes, Payments & Receipt Printing)
+
+1. BUSINESS OVERVIEW
+
+Build a customized Point of Sale (POS) system for Desi Beats Café, which sells a variety of food/drink items (800+ items). The POS should handle dine-in, takeaway orders, invoicing, billing, kitchen management, and table service.
+
+2. CORE REQUIREMENTS
+✔ 2.1 Product Management
+
+System must support 800+ products.
+
+Categories and subcategories required (e.g., Burgers, Fries, Shakes, Tea, BBQ, Addons).
+
+Product details must be fully editable:
+
+Name
+
+Price
+
+Description
+
+Category
+
+Availability toggle
+
+Tax applicable or not
+
+Variants (Small/Medium/Large)
+
+3. ORDER MANAGEMENT
+✔ 3.1 Order Creation
+
+Add items to cart/order.
+
+Orders must be editable at any time.
+
+Staff can:
+
+Add more items
+
+Remove items
+
+Adjust quantity
+
+Add notes to items (e.g., “Less spicy”, "No ice")
+
+✔ 3.2 Order Status Queue
+
+Each order must move through these statuses:
+
+Preparing
+
+Served
+
+Billed
+
+Cancelled
+
+Staff must be able to update status anytime.
+
+4. TABLE MANAGEMENT
+
+Visual table layout of café.
+
+Create/Remove/Edit tables.
+
+Assign orders to tables.
+
+Table status colors:
+
+Green = Available
+
+Yellow = Occupied (Preparing/Served)
+
+Red = Billed/Waiting for payment
+
+Features:
+
+Move order from one table to another.
+
+Combine / split tables optionally.
+
+5. PAYMENT MANAGEMENT
+Payment methods must include:
+
+Cash
+
+Credit/Debit Card
+
+Bank Transfer
+
+Wallet Transfer (e.g., Easypaisa/Jazzcash/SadaPay)
+
+Payment features:
+
+Add partial payment
+
+Remaining amount tracked
+
+Add tips
+
+Mark order as paid
+
+6. TAX MANAGEMENT
+
+Tax must be automatically applied to bill.
+
+Admin can edit:
+
+Tax percentage
+
+Whether product includes tax or tax is added on top
+
+Tax must show on the final printed receipt.
+
+7. RECEIPT PRINTING
+
+Receipt must include:
+
+Café logo
+
+Order number
+
+Table number
+
+Date & time
+
+Items list with quantities
+
+Subtotal
+
+Tax
+
+Total amount
+
+Payment method
+
+Cashier name
+
+“Thank you for visiting Desi Beats Café!” message
+
+Support:
+
+Thermal receipt printers (3-inch)
+
+Auto print or manual print
+
+8. ADMIN PANEL FEATURES
+
+Admin must be able to edit EVERYTHING:
+
+✔ Products
+✔ Categories
+✔ Tables
+✔ Taxes
+✔ Discounts
+✔ Payment methods
+✔ Kitchen settings
+✔ Staff permissions
+9. DASHBOARD / ANALYTICS
+
+Basic analytics:
+
+Daily sales
+
+Payment type breakdown
+
+Category-wise sales
+
+Most selling items
+
+Pending orders
+
+Cancelled orders
+
+10. USER ROLES
+
+Types of user accounts:
+
+Admin
+
+Full control over everything.
+
+Cashier
+
+Can create and edit orders, process payments, print receipts.
+
+Kitchen Staff
+
+Can view orders in “Preparing” stage, mark them as “Ready/Served”.
+
+Waiter
+
+Can create orders and assign tables.
+
+11. TECHNOLOGY RECOMMENDATION (OPTIONAL)
+
+If needed, specify the stack:
+
+Frontend: React / Next.js
+
+Backend: Node.js + Express
+
+Database: MongoDB
+
+POS Frontend: Touch-friendly interface
+
+Printer Support: ESC/POS integration
+
+12. UI REQUIREMENTS
+
+Touch-friendly buttons
+
+Category → Product grid
+
+Dark OR light theme
+
+Fast search for 800+ items
+
+Table layout grid
+
+Order summary sidebar
+
+Kitchen display screen (KDS) optional
+
+13. EXTRA FEATURES (OPTIONAL)
+
+Discounts (percentage or fixed amount)
+
+Customer name optional
+
+Delivery order support (address + phone number)
+
+Inventory deduction per item
+
+Export daily sales reports to Excel/PDF
+
+Auto logout after inactivity
+
+Sound notifications when new orders come in
+
+✅ FINAL PROMPT FOR DEVELOPER / AI
+
+Use this exact text as your final instruction:
+
+“Build a complete Point of Sale (POS) system for Desi Beats Café with 800+ products, table management, order editing, full admin customization, automatic tax system, receipt printing, multiple payment options, and detailed order status flows. The system must allow everything to be editable, support product categories, display orders in queue (Preparing → Served → Billed → Cancelled), allow order modifications at any time, handle table assignments visually, and manage payments through cash, card, bank transfer, or wallet. Tax must be added automatically to bills. Receipts must be printable with café logo. Include user roles (Admin, Cashier, Waiter, Kitchen Staff) and provide a dashboard for daily sales analytics. The system should be touch-friendly, fast, and scalable. All functionality mentioned above must be implemented.”

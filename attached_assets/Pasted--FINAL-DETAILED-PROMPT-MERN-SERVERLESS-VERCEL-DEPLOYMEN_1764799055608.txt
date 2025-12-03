@@ -1,0 +1,252 @@
+✅ FINAL DETAILED PROMPT (MERN • SERVERLESS • VERCEL DEPLOYMENT)
+
+“Build a complete, serverless MERN-stack Point of Sale (POS) system for Desi Beats Café, fully deployable on Vercel (frontend + backend API routes). The POS must include 800+ products, table management, editable orders, tax system, payment methods, order queue, and thermal receipt printing. Everything must be editable in the admin panel. The entire backend must use Vercel serverless API routes instead of Express server hosting. Database must be MongoDB Atlas. The frontend must be built in React or Next.js (preferred for Vercel). The whole system must run on Vercel without needing any external servers.”
+
+🔥 SYSTEM REQUIREMENTS (Updated for Vercel + Serverless)
+1. Tech Stack
+
+Frontend: Next.js (React) — optimized for Vercel
+
+Backend: Vercel Serverless Functions (/api/* folders)
+
+Database: MongoDB Atlas (Cloud database)
+
+Auth: JWT stored in HTTP-only cookies or NextAuth
+
+Printing: ESC/POS JavaScript library
+
+Styling: TailwindCSS
+
+📦 2. POS Features
+✔ Product Management (800+ items)
+
+Admin can create/edit/delete products
+
+Category/subcategory
+
+Variants (Small/Medium/Large)
+
+Mark available/unavailable
+
+Pricing + taxable toggle
+
+Images optional
+
+✔ Order Management (Editable Anytime)
+
+During order:
+
+Add item
+
+Remove item
+
+Increase/decrease quantity
+
+Add notes (“less spicy”, “no ice”)
+
+Order statuses:
+
+Preparing
+
+Served
+
+Billed
+
+Cancelled
+
+Orders must be editable even after being created.
+
+✔ Table Management (Dine-in + Takeaway)
+
+Visual table layout
+
+Create/delete/edit tables
+
+Move orders between tables
+
+Table status colors
+
+Green = Available
+
+Yellow = Preparing/Served
+
+Red = Waiting for billing/payment
+
+✔ Payment Options
+
+Cash
+
+Credit/Debit card
+
+Bank transfer
+
+Wallet (Easypaisa/Jazzcash/SadaPay)
+
+Partial payments
+
+Add tips
+
+Mark order as paid
+
+✔ Tax System
+
+Admin sets default tax percentage
+
+Tax automatically added to bill
+
+Option: Inclusive or exclusive tax
+
+Tax must appear on printed receipt
+
+✔ Receipt Printing
+
+Receipt must include:
+
+Café logo
+
+Order number
+
+Table number
+
+Items + quantities
+
+Subtotal
+
+Tax
+
+Total
+
+Payment method
+
+Date & time
+
+Thank-you message
+
+Printable via thermal printers (ESC/POS).
+
+✔ Admin Panel
+
+Admin must be able to edit everything:
+
+Products
+
+Categories
+
+Taxes
+
+Tables
+
+Payment types
+
+Discounts
+
+Staff roles
+
+Kitchen display settings
+
+✔ User Roles
+
+Admin
+
+Cashier
+
+Waiter
+
+Kitchen Staff
+
+Each role has different permissions via RBAC.
+
+✔ Dashboard & Reporting
+
+Daily/Weekly/Monthly sales
+
+Payment type summary
+
+Best selling items
+
+Live order queue
+
+Cancelled orders list
+
+Export reports as CSV/PDF
+
+✔ Optional Extra Features
+
+Customer info for deliveries
+
+Inventory deduction
+
+Discount per item or per bill
+
+Dark/Light mode
+
+Auto-logout session
+
+Sound notifications
+
+⚙ 3. Serverless Architecture Requirements (Vercel)
+
+Backend must be serverless:
+
+Backend API examples:
+/api/products
+/api/orders
+/api/tables
+/api/auth
+/api/dashboard
+/api/categories
+/api/payments
+/api/tax
+
+
+Each API route = separate serverless function
+
+Use MongoDB Atlas (global free tier or shared)
+
+Must use connection pooling optimization for serverless
+
+No Express server allowed
+
+Must work with Vercel Edge Functions & ISR/SSR pages
+
+📁 4. Project Folder Structure (Required)
+/app
+  /dashboard
+  /pos
+  /admin
+/api
+  /products
+  /orders
+  /tables
+  /auth
+  /payments
+  /tax
+  /reports
+/lib
+  db.js (MongoDB connect)
+  auth.js
+/components
+/styles
+
+
+Backend routes inside /api must use serverless functions.
+
+🚀 5. Deployment Requirements
+
+Must run fully on Vercel free plan
+
+Backend must use Vercel Serverless Functions
+
+MongoDB Atlas URI stored in environment variables
+
+One-click deploy using Vercel CLI
+
+No Docker needed
+
+No external server required
+
+📝 FINAL VERSION OF PROMPT TO GIVE
+
+Use this EXACT chunk:
+
+“Build a complete MERN stack (Next.js + MongoDB) serverless Point of Sale (POS) system for Desi Beats Café, deployable 100% on Vercel using Vercel serverless API routes. The POS must support 800+ editable products, table management, editable orders, automatic taxes, multiple payment methods, order status queue (Preparing, Served, Billed, Cancelled), receipt printing, admin panel, roles (Admin, Cashier, Waiter, Kitchen Staff), dashboard analytics, and MongoDB Atlas database. All backend logic must be built inside Vercel Serverless Functions in the /api folder. The UI must be POS-touch friendly with fast product search. System must support thermal receipt printing via ESC/POS. Everything must be customizable in the admin panel. The entire solution must deploy to Vercel without external servers.”
