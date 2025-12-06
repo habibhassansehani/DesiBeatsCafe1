@@ -2,9 +2,19 @@ import express from "express";
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { getImageKitAuthParams } from "../server/imagekit.js";
+import ImageKit from "imagekit";
 
 const app = express();
+
+const imagekit = new ImageKit({
+  publicKey: process.env.IMAGEKIT_PUBLIC_KEY || "",
+  privateKey: process.env.IMAGEKIT_PRIVATE_KEY || "",
+  urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT || "",
+});
+
+function getImageKitAuthParams() {
+  return imagekit.getAuthenticationParameters();
+}
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
