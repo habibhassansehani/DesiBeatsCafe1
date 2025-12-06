@@ -15,6 +15,7 @@ import {
   Menu,
   FileText,
   Shield,
+  ChevronDown,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -108,12 +109,9 @@ export function AppNavbar() {
                 data-testid={`link-nav-${item.title.toLowerCase().replace(/\s+/g, "-")}`}
               >
                 <Button
-                  variant={location === item.url ? "secondary" : "ghost"}
+                  variant={location === item.url ? "default" : "outline"}
                   size="sm"
-                  className={cn(
-                    "gap-1.5 transition-colors",
-                    location === item.url && "bg-accent text-accent-foreground"
-                  )}
+                  className="gap-1.5 transition-colors"
                 >
                   <item.icon className="w-4 h-4" />
                   <span>{item.title}</span>
@@ -125,16 +123,14 @@ export function AppNavbar() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
-                    variant={isAdminRoute ? "secondary" : "ghost"}
+                    variant={isAdminRoute ? "default" : "outline"}
                     size="sm"
-                    className={cn(
-                      "gap-1.5 transition-colors",
-                      isAdminRoute && "bg-accent text-accent-foreground"
-                    )}
+                    className="gap-1.5 transition-colors"
                     data-testid="button-admin-menu"
                   >
                     <Shield className="w-4 h-4" />
                     <span>Admin</span>
+                    <ChevronDown className="w-3 h-3" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-48">
