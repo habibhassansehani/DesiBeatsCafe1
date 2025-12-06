@@ -104,7 +104,7 @@ export function ProductGrid({
 
   return (
     <>
-      <ScrollArea className="flex-1">
+      <ScrollArea className="h-full">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 p-4">
           {products.map((product) => {
             const colors = getCategoryColor(product.categoryId);
