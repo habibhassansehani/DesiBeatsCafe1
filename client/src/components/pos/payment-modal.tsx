@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Banknote,
   CreditCard,
@@ -55,6 +55,17 @@ export function PaymentModal({
   const [showSplitPayment, setShowSplitPayment] = useState(false);
 
   const currency = settings?.currency || "Rs.";
+
+  useEffect(() => {
+    if (open) {
+      setAmount(total.toString());
+      setPayments([]);
+      setTip("0");
+      setReference("");
+      setSelectedMethod("cash");
+      setShowSplitPayment(false);
+    }
+  }, [open, total]);
 
   const formatPrice = (price: number) => {
     return `${currency} ${price.toLocaleString()}`;
