@@ -903,5 +903,19 @@ export async function registerRoutes(
     }
   });
 
+  // =====================
+  // IMAGEKIT AUTH ROUTE
+  // =====================
+  
+  app.get("/api/imagekit/auth", (req: Request, res: Response) => {
+    try {
+      const { getImageKitAuthParams } = require("./imagekit");
+      const authParams = getImageKitAuthParams();
+      res.json(authParams);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   return httpServer;
 }

@@ -2,27 +2,44 @@ import mongoose from "mongoose";
 
 const MONGO_URI = process.env.MONGO_URI || "";
 
+let cached: { conn: typeof mongoose | null; promise: Promise<typeof mongoose> | null } = {
+  conn: null,
+  promise: null,
+};
+
 export async function connectDB() {
-  try {
+  if (cached.conn) {
+    return cached.conn;
+  }
+
+  if (!cached.promise) {
     if (!MONGO_URI) {
       throw new Error("MONGO_URI environment variable is not set");
     }
-    
-    await mongoose.connect(MONGO_URI);
-    console.log("MongoDB connected successfully");
-    
-    // Initialize default data
-    await initializeDefaults();
-  } catch (error) {
-    console.error("MongoDB connection error:", error);
-    throw error;
+
+    const opts = {
+      bufferCommands: false,
+    };
+
+    cached.promise = mongoose.connect(MONGO_URI, opts).then((mongoose) => {
+      console.log("MongoDB connected successfully");
+      return mongoose;
+    });
   }
+
+  try {
+    cached.conn = await cached.promise;
+  } catch (e) {
+    cached.promise = null;
+    throw e;
+  }
+
+  return cached.conn;
 }
 
-async function initializeDefaults() {
+export async function initializeDefaults() {
   const { User, Settings, Category } = await import("./models");
-  
-  // Create default admin user if none exists
+
   const adminExists = await User.findOne({ role: "admin" });
   if (!adminExists) {
     const bcrypt = await import("bcryptjs");
@@ -36,8 +53,7 @@ async function initializeDefaults() {
     });
     console.log("Default admin user created (username: admin, password: admin)");
   }
-  
-  // Create default settings if none exist
+
   const settingsExist = await Settings.findOne();
   if (!settingsExist) {
     await Settings.create({
@@ -53,8 +69,7 @@ async function initializeDefaults() {
     });
     console.log("Default settings created");
   }
-  
-  // Create sample categories if none exist
+
   const categoriesExist = await Category.countDocuments();
   if (categoriesExist === 0) {
     const sampleCategories = [
