@@ -25,6 +25,7 @@ export interface ICategory extends Document {
   _id: mongoose.Types.ObjectId;
   name: string;
   description?: string;
+  color: string;
   sortOrder: number;
   isActive: boolean;
 }
@@ -32,6 +33,7 @@ export interface ICategory extends Document {
 const categorySchema = new Schema<ICategory>({
   name: { type: String, required: true },
   description: { type: String },
+  color: { type: String, default: "#6366f1" },
   sortOrder: { type: Number, default: 0 },
   isActive: { type: Boolean, default: true },
 });

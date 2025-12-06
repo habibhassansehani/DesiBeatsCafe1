@@ -197,7 +197,7 @@ export async function registerRoutes(
 
   app.post("/api/categories", async (req: Request, res: Response) => {
     try {
-      const { name, description, sortOrder, isActive } = req.body;
+      const { name, description, color, sortOrder, isActive } = req.body;
       
       if (!name) {
         return res.status(400).json({ message: "Category name is required" });
@@ -206,6 +206,7 @@ export async function registerRoutes(
       const category = await Category.create({
         name,
         description,
+        color: color || "#6366f1",
         sortOrder: sortOrder || 0,
         isActive: isActive !== false,
       });
@@ -219,11 +220,12 @@ export async function registerRoutes(
   app.patch("/api/categories/:id", async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const { name, description, sortOrder, isActive } = req.body;
+      const { name, description, color, sortOrder, isActive } = req.body;
 
       const updateData: any = {};
       if (name) updateData.name = name;
       if (description !== undefined) updateData.description = description;
+      if (color) updateData.color = color;
       if (typeof sortOrder === "number") updateData.sortOrder = sortOrder;
       if (typeof isActive === "boolean") updateData.isActive = isActive;
 
