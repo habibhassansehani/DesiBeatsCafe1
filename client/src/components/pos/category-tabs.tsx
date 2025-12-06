@@ -27,7 +27,7 @@ export function CategoryTabs({
   }
 
   return (
-    <div className="border-b border-border">
+    <div className="sticky top-0 z-40 bg-background border-b border-border">
       <ScrollArea className="w-full">
         <div className="flex gap-3 p-4">
           <Button

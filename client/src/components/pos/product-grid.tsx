@@ -76,11 +76,11 @@ export function ProductGrid({
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 p-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
         {Array.from({ length: 8 }).map((_, i) => (
           <Card
             key={i}
-            className="p-4 h-48 animate-pulse bg-muted"
+            className="min-h-52 animate-pulse bg-muted"
           />
         ))}
       </div>
@@ -100,33 +100,36 @@ export function ProductGrid({
   return (
     <>
       <ScrollArea className="h-full">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 p-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
           {products.map((product) => {
             const categoryColor = getCategoryColor(product.categoryId);
             const rgb = hexToRgb(categoryColor);
             const lightBg = rgb
-              ? `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.15)`
-              : "rgba(99, 102, 241, 0.15)";
+              ? `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.08)`
+              : "rgba(99, 102, 241, 0.08)";
             return (
               <Card
                 key={product._id}
-                className={`relative overflow-hidden cursor-pointer transition-all hover-elevate active-elevate-2 border-2 ${
+                className={`relative min-h-52 flex flex-col cursor-pointer transition-all hover-elevate active-elevate-2 ${
                   !product.isAvailable
                     ? "opacity-50 cursor-not-allowed"
                     : ""
                 }`}
-                style={{ borderColor: categoryColor }}
                 onClick={() => handleProductClick(product)}
                 data-testid={`product-card-${product._id}`}
               >
+                <div 
+                  className="absolute left-0 top-0 bottom-0 w-1 rounded-l-lg"
+                  style={{ backgroundColor: categoryColor }}
+                />
                 {!product.isAvailable && (
-                  <div className="absolute inset-0 bg-background/80 flex items-center justify-center z-10">
+                  <div className="absolute inset-0 bg-background/80 flex items-center justify-center z-10 rounded-md">
                     <Badge variant="secondary">Unavailable</Badge>
                   </div>
                 )}
                 
                 <div
-                  className="h-24 flex items-center justify-center"
+                  className="h-32 flex items-center justify-center"
                   style={{ backgroundColor: lightBg }}
                 >
                   {product.image ? (
@@ -137,15 +140,15 @@ export function ProductGrid({
                     />
                   ) : (
                     <UtensilsCrossed
-                      className="w-10 h-10 opacity-70"
+                      className="w-12 h-12 opacity-60"
                       style={{ color: categoryColor }}
                     />
                   )}
                 </div>
                 
-                <div className="p-3 flex flex-col">
+                <div className="p-3 flex flex-col flex-1">
                   <h3
-                    className="font-bold text-sm line-clamp-2 mb-1"
+                    className="font-semibold text-base line-clamp-2 mb-1"
                     data-testid={`text-product-name-${product._id}`}
                   >
                     {product.name}
@@ -158,7 +161,7 @@ export function ProductGrid({
                   
                   <div className="flex items-center justify-between mt-auto gap-2">
                     <span
-                      className="font-bold text-primary text-sm"
+                      className="font-bold text-primary text-base"
                       data-testid={`text-product-price-${product._id}`}
                     >
                       {product.variants && product.variants.length > 0
@@ -167,7 +170,6 @@ export function ProductGrid({
                     </span>
                     <Button
                       size="icon"
-                      className="h-8 w-8 shrink-0"
                       disabled={!product.isAvailable}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -175,7 +177,7 @@ export function ProductGrid({
                       }}
                       data-testid={`button-add-${product._id}`}
                     >
-                      <Plus className="h-4 w-4" />
+                      <Plus className="h-5 w-5" />
                     </Button>
                   </div>
                 </div>
