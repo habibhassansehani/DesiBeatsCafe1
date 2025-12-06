@@ -1,0 +1,95 @@
+Category,Item Name,Price (PKR)
+Break Fast,Whole Wheat Paratha,80/-
+,Allu Paratha,150/-
+,Allu Cheese Paratha,220/-
+,Chicken Paratha,250/-
+,Chicken Cheese Paratha,300/-
+,Saag Paratha,250/-
+,Fry Egg,80/-
+,Omelette,90/-
+,Cheese Omelette,150/-
+Halwa Pori Nashta,Puri,70/-
+,Halwa 250g,220/-
+,Aloo Bhujia,250/-
+,Chanay,300/-
+,Desi Ghee Paratha,180/-
+,Sarson ka Saag,650/-
+,Makki ki Roti,210/-
+,Omelette (2) Eggs,160/-
+,Fry Eggs (2),150/-
+,Chai,110/-
+,Desi Beats Special Chai,200/-
+Hot Wings,Masala Hot Wings (6 pcs),650/-
+,Sesame Seed Hot Wings (6 pcs),780/-
+,Garlic B.B.Q Wings (6 pcs),850/-
+Fries / Refreshment,Plan Fries,200/400
+,Masala Fries,220/440
+,Garlic Mayo Fries,250/450
+,Sesame Seed Fries,250/499
+,Samosa Plate,180/-
+,Pakoray 250g,220/-
+,Chicken Pakoray 250g,400/-
+Salad,Green Salad,100/-
+,Mint Raita,120/-
+,Mint Sauce,140/-
+Tandoor,Roti,25/-
+,Naan,30/-
+,Chapati,70/-
+,Tawa Paratha,80/-
+,Roghni Naan,70/-
+,Tandoori Paratha,70/-
+,Kulcha,50/-
+Main Course,Beef Nehari,700/-
+,Lahori Chanay,300/-
+,Special Daal,350/-
+,Special Sabzi,350/-
+,Chicken Qorma,450/-
+,Chicken Haleem,480/-
+,Chicken Qeema,480/-
+,Chicken Jalfarezi,590/-
+,Chicken Madrasi,950/-
+Karahi,Chicken Karahi (Half/Full),1150 / 2250
+,Chicken Handi (Half/Full),1490 / 2790
+,Desi Murgh Karahi (Half/Full),1900 / 3700
+,Mutton Karahi (Half/Full),1950 / 3800
+Rice,Daal Chawal,450/-
+,Plain Rice,300/-
+,Chicken Pulao,480/-
+,Chicken Bariyani,500/-
+,Chicken Fried Rice,600/-
+,Egg Fried Rice,500/-
+,Plain Bariyani,300/-
+Fish,Rahu Grilled Fish 1kg,1850/-
+,Rahu Fried Fish 1 kg,2000/-
+,Finger Fried Fish 1 kg,2350/-
+B.B.Q,Chicken Tikka Boti,200/-
+,Chicken Malai Boti,400/-
+,Chicken Tikka Piece Leg,370/-
+,Chicken Tikka Piece Chest,380/-
+,Chicken Tikka Per Plate,400/-
+,Malai Boti 6 seekh,2400/-
+Burger,Zinger Burger / Fries,350/-
+,Beef Smash Burger / Fries,400/-
+,Crispy Chicken Patty Burger / Fries,350/-
+,Anda Shami Burger,220/-
+Shawarma,Chicken Shawarma,220/-
+,Chicken Cheese Shawarma,300/-
+,Zinger Shawarma,300/-
+,Shawarma Platter,480/-
+Roll Paratha,Garlic Mayo Roll,350/-
+,B.B.Q Paratha Roll,400/-
+,Zinger Paratha Roll,380/-
+Fried Chicken,Chicken Hot Shots (Half/Full),450 / 800
+,Chicken Fried 2 Piece / Fries,499/-
+,Chicken Fried 6 Piece / Fries,1250/-
+,Nuggets 6 Pcs with Fries,499/-
+Drinks,Mint Margarita,350/-
+,Lasi,260/-
+,Seasonal Shake,450/-
+,Cold Drink Can,150/-
+,Cold Drink 1Ltr,180/-
+,Cold Drink 1.5 Ltr,250/-
+,Mineral Water Large,110/-
+,Mineral Water Small,70/-
+Sweet,DBC Special Kheer (Small/Large),320 / 580
+,DBC Special Gajar Halwa 250g,900/-
