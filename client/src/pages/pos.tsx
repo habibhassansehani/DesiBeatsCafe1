@@ -63,28 +63,29 @@ export default function POSPage() {
 
   return (
     <div className="flex flex-col h-full" data-testid="pos-page">
-      <div className="flex items-center gap-4 p-4 border-b border-border">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      <div className="flex items-center gap-2 p-2 border-b border-border">
+        <div className="relative flex-1 max-w-xs">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Search products..."
+            placeholder="Search..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
+            className="pl-8 h-8 text-sm"
             data-testid="input-search"
           />
         </div>
         
         <Button
           variant="outline"
+          size="sm"
           onClick={() => setTableDialogOpen(true)}
-          className="gap-2"
+          className="gap-1.5"
           data-testid="button-select-table"
         >
           <Grid3X3 className="h-4 w-4" />
           {selectedTable ? (
-            <span>Table {selectedTable.number}</span>
+            <span>T{selectedTable.number}</span>
           ) : (
             <span>Takeaway</span>
           )}

@@ -17,9 +17,9 @@ export function CategoryTabs({
 }: CategoryTabsProps) {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-2 p-4 border-b border-border">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <Skeleton key={i} className="h-10" />
+      <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12 gap-1.5 p-2 border-b border-border">
+        {Array.from({ length: 10 }).map((_, i) => (
+          <Skeleton key={i} className="h-8" />
         ))}
       </div>
     );
@@ -30,12 +30,12 @@ export function CategoryTabs({
     .sort((a, b) => a.sortOrder - b.sortOrder);
 
   return (
-    <div className="sticky top-0 z-40 bg-background border-b border-border p-3">
-      <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-2">
+    <div className="sticky top-0 z-40 bg-background border-b border-border p-2">
+      <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12 gap-1.5">
         <Button
           size="sm"
           variant={selectedCategoryId === null ? "default" : "outline"}
-          className="font-semibold text-sm truncate"
+          className="font-medium text-xs h-8 px-2 truncate"
           onClick={() => onSelectCategory(null)}
           data-testid="button-category-all"
         >
@@ -48,8 +48,8 @@ export function CategoryTabs({
             <Button
               key={category._id}
               size="sm"
-              className={`font-semibold text-sm text-white truncate ${
-                isSelected ? "" : "opacity-80"
+              className={`font-medium text-xs h-8 px-2 text-white truncate ${
+                isSelected ? "ring-2 ring-offset-1 ring-foreground/20" : "opacity-85"
               }`}
               style={{
                 backgroundColor: categoryColor,
