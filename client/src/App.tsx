@@ -3,11 +3,14 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AuthProvider, useAuth } from "@/lib/auth-context";
 import { ThemeProvider } from "@/lib/theme-context";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { AppSidebar } from "@/components/app-sidebar";
+import { AppNavbar } from "@/components/app-navbar";
+import { CartProvider, useCart } from "@/lib/cart-context";
+import { CartSidebar } from "@/components/pos/cart-sidebar";
+import { PaymentModal } from "@/components/pos/payment-modal";
+import { useQuery } from "@tanstack/react-query";
+import type { Settings } from "@shared/schema";
 
 import Login from "@/pages/login";
 import POSPage from "@/pages/pos";
@@ -37,27 +40,72 @@ function ProtectedRoute({ children, requiredRoles }: { children: React.ReactNode
   return <>{children}</>;
 }
 
-function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
-  const style = {
-    "--sidebar-width": "16rem",
-    "--sidebar-width-icon": "3rem",
-  };
+function GlobalCart() {
+  const {
+    items,
+    updateQuantity,
+    removeItem,
+    updateNotes,
+    clearCart,
+    selectedTable,
+    paymentModalOpen,
+    setPaymentModalOpen,
+    handleCheckout,
+    handlePaymentConfirm,
+    isSubmitting,
+  } = useCart();
+
+  const { data: settings } = useQuery<Settings>({
+    queryKey: ["/api/settings"],
+  });
 
   return (
-    <SidebarProvider style={style as React.CSSProperties}>
-      <div className="flex h-screen w-full">
-        <AppSidebar />
-        <div className="flex flex-col flex-1 min-w-0">
-          <header className="flex items-center justify-between h-14 px-4 border-b border-border shrink-0 gap-2">
-            <SidebarTrigger data-testid="button-sidebar-toggle" />
-            <ThemeToggle />
-          </header>
-          <main className="flex-1 overflow-hidden">
-            {children}
-          </main>
-        </div>
+    <>
+      <div className="w-80 shrink-0 hidden lg:block border-l border-border">
+        <CartSidebar
+          items={items}
+          onUpdateQuantity={updateQuantity}
+          onRemoveItem={removeItem}
+          onUpdateNotes={updateNotes}
+          onClearCart={clearCart}
+          onCheckout={handleCheckout}
+          settings={settings || null}
+          isSubmitting={isSubmitting}
+          tableName={selectedTable?.name}
+        />
       </div>
-    </SidebarProvider>
+
+      <PaymentModal
+        open={paymentModalOpen}
+        onClose={() => setPaymentModalOpen(false)}
+        onConfirm={handlePaymentConfirm}
+        total={(() => {
+          const taxPercentage = settings?.taxPercentage || 16;
+          const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0);
+          const taxableAmount = items
+            .filter((i) => i.isTaxable)
+            .reduce((s, i) => s + i.price * i.quantity, 0);
+          const taxAmount = (taxableAmount * taxPercentage) / 100;
+          return subtotal + taxAmount;
+        })()}
+        settings={settings || null}
+        isProcessing={isSubmitting}
+      />
+    </>
+  );
+}
+
+function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col h-screen w-full">
+      <AppNavbar />
+      <div className="flex flex-1 overflow-hidden">
+        <main className="flex-1 overflow-hidden">
+          {children}
+        </main>
+        <GlobalCart />
+      </div>
+    </div>
   );
 }
 
@@ -65,7 +113,6 @@ function Router() {
   const { isAuthenticated, isKitchen } = useAuth();
   const [location] = useLocation();
 
-  // Redirect authenticated users away from login
   if (isAuthenticated && location === "/") {
     if (isKitchen) {
       return <Redirect to="/kitchen" />;
@@ -75,10 +122,8 @@ function Router() {
 
   return (
     <Switch>
-      {/* Public Route */}
       <Route path="/" component={Login} />
 
-      {/* POS Operations Routes */}
       <Route path="/pos">
         <ProtectedRoute>
           <AuthenticatedLayout>
@@ -111,7 +156,6 @@ function Router() {
         </ProtectedRoute>
       </Route>
 
-      {/* Admin Routes */}
       <Route path="/dashboard">
         <ProtectedRoute requiredRoles={["admin"]}>
           <AuthenticatedLayout>
@@ -160,7 +204,6 @@ function Router() {
         </ProtectedRoute>
       </Route>
 
-      {/* Fallback */}
       <Route component={NotFound} />
     </Switch>
   );
@@ -171,10 +214,12 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Router />
-          </TooltipProvider>
+          <CartProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Router />
+            </TooltipProvider>
+          </CartProvider>
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
