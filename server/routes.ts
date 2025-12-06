@@ -795,5 +795,113 @@ export async function registerRoutes(
     }
   });
 
+  // =====================
+  // REPORTS ROUTES
+  // =====================
+  
+  app.get("/api/reports", authMiddleware, adminMiddleware, async (req: AuthRequest, res: Response) => {
+    try {
+      const { startDate, endDate } = req.query;
+      
+      let dateFilter: any = {};
+      
+      if (startDate && endDate) {
+        const start = new Date(startDate as string);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(endDate as string);
+        end.setHours(23, 59, 59, 999);
+        dateFilter = { createdAt: { $gte: start, $lte: end } };
+      } else if (startDate) {
+        const start = new Date(startDate as string);
+        start.setHours(0, 0, 0, 0);
+        dateFilter = { createdAt: { $gte: start } };
+      }
+
+      const orders = await Order.find({
+        ...dateFilter,
+        status: { $ne: "cancelled" },
+      })
+        .sort({ createdAt: -1 })
+        .lean();
+
+      // Calculate summary statistics
+      const totalOrders = orders.length;
+      const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
+      const totalTax = orders.reduce((sum, o) => sum + o.taxAmount, 0);
+      const totalSubtotal = orders.reduce((sum, o) => sum + o.subtotal, 0);
+
+      // Payment method breakdown
+      const paymentBreakdown: { [key: string]: { amount: number; count: number } } = {};
+      orders.forEach((order) => {
+        order.payments.forEach((payment) => {
+          if (!paymentBreakdown[payment.method]) {
+            paymentBreakdown[payment.method] = { amount: 0, count: 0 };
+          }
+          paymentBreakdown[payment.method].amount += payment.amount;
+          paymentBreakdown[payment.method].count += 1;
+        });
+      });
+
+      // Order type breakdown
+      const dineInOrders = orders.filter(o => o.type === "dine-in");
+      const takeawayOrders = orders.filter(o => o.type === "takeaway");
+
+      // Item sales breakdown
+      const itemSales: { [key: string]: { name: string; quantity: number; revenue: number } } = {};
+      orders.forEach((order) => {
+        order.items.forEach((item) => {
+          const key = item.productName;
+          if (!itemSales[key]) {
+            itemSales[key] = { name: item.productName, quantity: 0, revenue: 0 };
+          }
+          itemSales[key].quantity += item.quantity;
+          itemSales[key].revenue += item.price * item.quantity;
+        });
+      });
+
+      const topSellingItems = Object.values(itemSales)
+        .sort((a, b) => b.quantity - a.quantity)
+        .slice(0, 20);
+
+      res.json({
+        summary: {
+          totalOrders,
+          totalRevenue,
+          totalTax,
+          totalSubtotal,
+          averageOrderValue: totalOrders > 0 ? totalRevenue / totalOrders : 0,
+          dineInCount: dineInOrders.length,
+          dineInRevenue: dineInOrders.reduce((sum, o) => sum + o.total, 0),
+          takeawayCount: takeawayOrders.length,
+          takeawayRevenue: takeawayOrders.reduce((sum, o) => sum + o.total, 0),
+        },
+        paymentBreakdown: Object.entries(paymentBreakdown).map(([method, data]) => ({
+          method,
+          amount: data.amount,
+          count: data.count,
+        })),
+        topSellingItems,
+        orders: orders.map((o) => ({
+          _id: o._id.toString(),
+          orderNumber: o.orderNumber,
+          type: o.type,
+          tableName: o.tableName,
+          status: o.status,
+          subtotal: o.subtotal,
+          taxAmount: o.taxAmount,
+          total: o.total,
+          isPaid: o.isPaid,
+          cashierName: o.cashierName,
+          waiterName: o.waiterName,
+          customerName: o.customerName,
+          itemCount: o.items.reduce((sum, i) => sum + i.quantity, 0),
+          createdAt: o.createdAt.toISOString(),
+        })),
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   return httpServer;
 }

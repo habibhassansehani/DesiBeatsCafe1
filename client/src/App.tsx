@@ -23,6 +23,7 @@ import AdminCategoriesPage from "@/pages/admin/categories";
 import AdminTablesPage from "@/pages/admin/tables";
 import AdminUsersPage from "@/pages/admin/users";
 import AdminSettingsPage from "@/pages/admin/settings";
+import AdminReportsPage from "@/pages/admin/reports";
 import NotFound from "@/pages/not-found";
 
 function ProtectedRoute({ children, requiredRoles }: { children: React.ReactNode; requiredRoles?: string[] }) {
@@ -200,6 +201,14 @@ function Router() {
         <ProtectedRoute requiredRoles={["admin"]}>
           <AuthenticatedLayout>
             <AdminSettingsPage />
+          </AuthenticatedLayout>
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/admin/reports">
+        <ProtectedRoute requiredRoles={["admin"]}>
+          <AuthenticatedLayout>
+            <AdminReportsPage />
           </AuthenticatedLayout>
         </ProtectedRoute>
       </Route>

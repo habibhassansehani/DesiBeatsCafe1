@@ -14,6 +14,7 @@ import {
   DollarSign,
   Menu,
   ChevronDown,
+  FileText,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -46,6 +47,7 @@ const operationsItems = [
 
 const adminItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+  { title: "Reports", url: "/admin/reports", icon: FileText },
   { title: "Products", url: "/admin/products", icon: Package },
   { title: "Categories", url: "/admin/categories", icon: Tag },
   { title: "Tables", url: "/admin/tables", icon: UtensilsCrossed },
