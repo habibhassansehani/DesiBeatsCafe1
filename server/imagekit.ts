@@ -1,18 +1,33 @@
 import ImageKit from "imagekit";
 
-const imagekit = new ImageKit({
-  publicKey: process.env.IMAGEKIT_PUBLIC_KEY || "",
-  privateKey: process.env.IMAGEKIT_PRIVATE_KEY || "",
-  urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT || "",
-});
+let imagekit: ImageKit | null = null;
+
+function getImageKit(): ImageKit {
+  if (!imagekit) {
+    const publicKey = process.env.IMAGEKIT_PUBLIC_KEY;
+    const privateKey = process.env.IMAGEKIT_PRIVATE_KEY;
+    const urlEndpoint = process.env.IMAGEKIT_URL_ENDPOINT;
+
+    if (!publicKey || !privateKey || !urlEndpoint) {
+      throw new Error("ImageKit credentials not configured. Please set IMAGEKIT_PUBLIC_KEY, IMAGEKIT_PRIVATE_KEY, and IMAGEKIT_URL_ENDPOINT.");
+    }
+
+    imagekit = new ImageKit({
+      publicKey,
+      privateKey,
+      urlEndpoint,
+    });
+  }
+  return imagekit;
+}
 
 export function getImageKitAuthParams() {
-  return imagekit.getAuthenticationParameters();
+  return getImageKit().getAuthenticationParameters();
 }
 
 export async function uploadImage(file: Buffer, fileName: string, folder?: string) {
   try {
-    const response = await imagekit.upload({
+    const response = await getImageKit().upload({
       file: file,
       fileName: fileName,
       folder: folder || "/cafe-pos",
@@ -26,7 +41,7 @@ export async function uploadImage(file: Buffer, fileName: string, folder?: strin
 
 export async function deleteImage(fileId: string) {
   try {
-    await imagekit.deleteFile(fileId);
+    await getImageKit().deleteFile(fileId);
     return true;
   } catch (error) {
     console.error("ImageKit delete error:", error);
@@ -34,4 +49,4 @@ export async function deleteImage(fileId: string) {
   }
 }
 
-export default imagekit;
+export default { getImageKitAuthParams, uploadImage, deleteImage };
