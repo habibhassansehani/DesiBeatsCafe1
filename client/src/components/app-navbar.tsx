@@ -13,7 +13,6 @@ import {
   Tag,
   DollarSign,
   Menu,
-  ChevronDown,
   FileText,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -26,22 +25,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 const operationsItems = [
-  { title: "POS Terminal", url: "/pos", icon: ShoppingCart },
+  { title: "POS", url: "/pos", icon: ShoppingCart },
   { title: "Tables", url: "/tables", icon: Grid3X3 },
-  { title: "Kitchen Display", url: "/kitchen", icon: ChefHat },
+  { title: "Kitchen", url: "/kitchen", icon: ChefHat },
   { title: "Orders", url: "/orders", icon: Receipt },
 ];
 
@@ -90,15 +82,20 @@ export function AppNavbar() {
     return true;
   });
 
+  const allNavItems = [
+    ...visibleOperationsItems,
+    ...(isAdmin ? adminItems : []),
+  ];
+
   return (
     <nav className="h-14 border-b border-border bg-card shrink-0 sticky top-0 z-50">
       <div className="flex items-center justify-between h-full px-4 gap-4">
-        <div className="flex items-center gap-6">
-          <Link href="/pos" className="flex items-center gap-2">
+        <div className="flex items-center gap-4 min-w-0 flex-1">
+          <Link href="/pos" className="flex items-center gap-2 shrink-0">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
               <DollarSign className="w-4 h-4 text-primary-foreground" />
             </div>
-            <div className="flex flex-col">
+            <div className="hidden sm:flex flex-col">
               <span className="font-semibold text-sm leading-tight" data-testid="text-navbar-title">
                 Desi Beats
               </span>
@@ -106,66 +103,31 @@ export function AppNavbar() {
             </div>
           </Link>
 
-          <div className="hidden md:flex items-center">
-            <NavigationMenu>
-              <NavigationMenuList>
-                <NavigationMenuItem>
-                  <NavigationMenuTrigger className="h-9 px-3 text-sm" data-testid="nav-operations">
-                    Operations
-                  </NavigationMenuTrigger>
-                  <NavigationMenuContent>
-                    <ul className="grid w-48 gap-1 p-2">
-                      {visibleOperationsItems.map((item) => (
-                        <li key={item.title}>
-                          <NavigationMenuLink asChild>
-                            <Link
-                              href={item.url}
-                              className={cn(
-                                "flex items-center gap-2 rounded-md px-3 py-2 text-sm hover-elevate",
-                                location === item.url && "bg-accent text-accent-foreground"
-                              )}
-                              data-testid={`link-nav-${item.title.toLowerCase().replace(/\s+/g, "-")}`}
-                            >
-                              <item.icon className="w-4 h-4" />
-                              <span>{item.title}</span>
-                            </Link>
-                          </NavigationMenuLink>
-                        </li>
-                      ))}
-                    </ul>
-                  </NavigationMenuContent>
-                </NavigationMenuItem>
-
-                {isAdmin && (
-                  <NavigationMenuItem>
-                    <NavigationMenuTrigger className="h-9 px-3 text-sm" data-testid="nav-administration">
-                      Administration
-                    </NavigationMenuTrigger>
-                    <NavigationMenuContent>
-                      <ul className="grid w-48 gap-1 p-2">
-                        {adminItems.map((item) => (
-                          <li key={item.title}>
-                            <NavigationMenuLink asChild>
-                              <Link
-                                href={item.url}
-                                className={cn(
-                                  "flex items-center gap-2 rounded-md px-3 py-2 text-sm hover-elevate",
-                                  location === item.url && "bg-accent text-accent-foreground"
-                                )}
-                                data-testid={`link-nav-${item.title.toLowerCase().replace(/\s+/g, "-")}`}
-                              >
-                                <item.icon className="w-4 h-4" />
-                                <span>{item.title}</span>
-                              </Link>
-                            </NavigationMenuLink>
-                          </li>
-                        ))}
-                      </ul>
-                    </NavigationMenuContent>
-                  </NavigationMenuItem>
-                )}
-              </NavigationMenuList>
-            </NavigationMenu>
+          <div className="hidden md:block min-w-0 flex-1">
+            <ScrollArea className="w-full">
+              <div className="flex items-center gap-1">
+                {allNavItems.map((item) => (
+                  <Link
+                    key={item.url}
+                    href={item.url}
+                    data-testid={`link-nav-${item.title.toLowerCase().replace(/\s+/g, "-")}`}
+                  >
+                    <Button
+                      variant={location === item.url ? "secondary" : "ghost"}
+                      size="sm"
+                      className={cn(
+                        "gap-1.5 whitespace-nowrap transition-colors",
+                        location === item.url && "bg-accent text-accent-foreground"
+                      )}
+                    >
+                      <item.icon className="w-4 h-4" />
+                      <span>{item.title}</span>
+                    </Button>
+                  </Link>
+                ))}
+              </div>
+              <ScrollBar orientation="horizontal" className="invisible" />
+            </ScrollArea>
           </div>
 
           <div className="md:hidden">
@@ -218,7 +180,7 @@ export function AppNavbar() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <ThemeToggle />
           
           <DropdownMenu>
@@ -237,7 +199,6 @@ export function AppNavbar() {
                     {user?.role || "Guest"}
                   </span>
                 </div>
-                <ChevronDown className="w-3 h-3 text-muted-foreground hidden sm:block" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
