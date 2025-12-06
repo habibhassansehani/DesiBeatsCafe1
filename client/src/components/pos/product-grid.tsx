@@ -20,16 +20,16 @@ interface ProductGridProps {
   isLoading?: boolean;
 }
 
-const categoryColors: Record<number, { bg: string; border: string; text: string }> = {
-  0: { bg: "bg-orange-100 dark:bg-orange-950", border: "border-orange-300 dark:border-orange-800", text: "text-orange-700 dark:text-orange-300" },
-  1: { bg: "bg-blue-100 dark:bg-blue-950", border: "border-blue-300 dark:border-blue-800", text: "text-blue-700 dark:text-blue-300" },
-  2: { bg: "bg-green-100 dark:bg-green-950", border: "border-green-300 dark:border-green-800", text: "text-green-700 dark:text-green-300" },
-  3: { bg: "bg-purple-100 dark:bg-purple-950", border: "border-purple-300 dark:border-purple-800", text: "text-purple-700 dark:text-purple-300" },
-  4: { bg: "bg-pink-100 dark:bg-pink-950", border: "border-pink-300 dark:border-pink-800", text: "text-pink-700 dark:text-pink-300" },
-  5: { bg: "bg-yellow-100 dark:bg-yellow-950", border: "border-yellow-300 dark:border-yellow-800", text: "text-yellow-700 dark:text-yellow-300" },
-  6: { bg: "bg-teal-100 dark:bg-teal-950", border: "border-teal-300 dark:border-teal-800", text: "text-teal-700 dark:text-teal-300" },
-  7: { bg: "bg-red-100 dark:bg-red-950", border: "border-red-300 dark:border-red-800", text: "text-red-700 dark:text-red-300" },
-};
+function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result
+    ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16),
+      }
+    : null;
+}
 
 export function ProductGrid({
   products,
@@ -43,14 +43,9 @@ export function ProductGrid({
 
   const currency = settings?.currency || "Rs.";
 
-  const getCategoryIndex = (categoryId: string) => {
-    const index = categories.findIndex((c) => c._id === categoryId);
-    return index >= 0 ? index % 8 : 0;
-  };
-
   const getCategoryColor = (categoryId: string) => {
-    const index = getCategoryIndex(categoryId);
-    return categoryColors[index] || categoryColors[0];
+    const category = categories.find((c) => c._id === categoryId);
+    return category?.color || "#6366f1";
   };
 
   const handleProductClick = (product: Product) => {
@@ -107,15 +102,20 @@ export function ProductGrid({
       <ScrollArea className="h-full">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 p-4">
           {products.map((product) => {
-            const colors = getCategoryColor(product.categoryId);
+            const categoryColor = getCategoryColor(product.categoryId);
+            const rgb = hexToRgb(categoryColor);
+            const lightBg = rgb
+              ? `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.15)`
+              : "rgba(99, 102, 241, 0.15)";
             return (
               <Card
                 key={product._id}
-                className={`relative overflow-hidden cursor-pointer transition-all hover-elevate active-elevate-2 border-2 ${colors.border} ${
+                className={`relative overflow-hidden cursor-pointer transition-all hover-elevate active-elevate-2 border-2 ${
                   !product.isAvailable
                     ? "opacity-50 cursor-not-allowed"
                     : ""
                 }`}
+                style={{ borderColor: categoryColor }}
                 onClick={() => handleProductClick(product)}
                 data-testid={`product-card-${product._id}`}
               >
@@ -125,7 +125,10 @@ export function ProductGrid({
                   </div>
                 )}
                 
-                <div className={`h-24 flex items-center justify-center ${colors.bg}`}>
+                <div
+                  className="h-24 flex items-center justify-center"
+                  style={{ backgroundColor: lightBg }}
+                >
                   {product.image ? (
                     <img
                       src={product.image}
@@ -133,7 +136,10 @@ export function ProductGrid({
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <UtensilsCrossed className={`w-10 h-10 ${colors.text} opacity-60`} />
+                    <UtensilsCrossed
+                      className="w-10 h-10 opacity-70"
+                      style={{ color: categoryColor }}
+                    />
                   )}
                 </div>
                 

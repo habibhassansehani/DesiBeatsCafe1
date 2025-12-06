@@ -29,6 +29,7 @@ export const categorySchema = z.object({
   _id: z.string(),
   name: z.string().min(1),
   description: z.string().optional(),
+  color: z.string().default("#6366f1"),
   sortOrder: z.number().default(0),
   isActive: z.boolean().default(true),
 });

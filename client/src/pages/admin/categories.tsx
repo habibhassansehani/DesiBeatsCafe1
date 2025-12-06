@@ -51,10 +51,25 @@ export default function AdminCategoriesPage() {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [deletingCategory, setDeletingCategory] = useState<Category | null>(null);
 
+  // Preset colors for quick selection
+  const presetColors = [
+    "#f97316", // orange
+    "#3b82f6", // blue
+    "#22c55e", // green
+    "#a855f7", // purple
+    "#ec4899", // pink
+    "#14b8a6", // teal
+    "#ef4444", // red
+    "#f59e0b", // amber
+    "#6366f1", // indigo
+    "#8b5cf6", // violet
+  ];
+
   // Form state
   const [formData, setFormData] = useState<Partial<InsertCategory>>({
     name: "",
     description: "",
+    color: "#6366f1",
     sortOrder: 0,
     isActive: true,
   });
@@ -133,6 +148,7 @@ export default function AdminCategoriesPage() {
     setFormData({
       name: "",
       description: "",
+      color: presetColors[categories.length % presetColors.length],
       sortOrder: categories.length,
       isActive: true,
     });
@@ -144,6 +160,7 @@ export default function AdminCategoriesPage() {
     setFormData({
       name: category.name,
       description: category.description,
+      color: category.color || "#6366f1",
       sortOrder: category.sortOrder,
       isActive: category.isActive,
     });
@@ -156,6 +173,7 @@ export default function AdminCategoriesPage() {
     setFormData({
       name: "",
       description: "",
+      color: "#6366f1",
       sortOrder: 0,
       isActive: true,
     });
@@ -229,6 +247,11 @@ export default function AdminCategoriesPage() {
                       <div className="text-muted-foreground cursor-grab">
                         <GripVertical className="h-5 w-5" />
                       </div>
+
+                      <div
+                        className="w-6 h-6 rounded-md shrink-0"
+                        style={{ backgroundColor: category.color || "#6366f1" }}
+                      />
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
@@ -311,6 +334,33 @@ export default function AdminCategoriesPage() {
                 rows={3}
                 data-testid="input-category-description"
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Color</Label>
+              <div className="flex items-center gap-2 flex-wrap">
+                {presetColors.map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    className={`w-8 h-8 rounded-md border-2 transition-all ${
+                      formData.color === color
+                        ? "border-foreground scale-110"
+                        : "border-transparent hover:scale-105"
+                    }`}
+                    style={{ backgroundColor: color }}
+                    onClick={() => setFormData({ ...formData, color })}
+                    data-testid={`button-color-${color.replace("#", "")}`}
+                  />
+                ))}
+                <Input
+                  type="color"
+                  value={formData.color || "#6366f1"}
+                  onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                  className="w-8 h-8 p-0 border-0 cursor-pointer"
+                  data-testid="input-category-color"
+                />
+              </div>
             </div>
 
             <div className="space-y-2">
