@@ -323,114 +323,92 @@ export default function OrdersPage() {
                 }}
                 data-testid={`order-card-${order._id}`}
               >
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between gap-4 flex-wrap">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
-                        <span className="font-mono font-bold">#{order.orderNumber}</span>
+                <CardContent className="p-3">
+                  <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                        <span className="font-mono font-bold text-sm">#{order.orderNumber}</span>
                       </div>
                       <div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <Badge variant={getStatusBadgeVariant(order.status)} className="gap-1">
-                            {getStatusIcon(order.status)}
-                            <span className="capitalize">{order.status}</span>
-                          </Badge>
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           {order.tableName && (
-                            <Badge variant="outline">{order.tableName}</Badge>
+                            <Badge variant="outline" className="text-xs">{order.tableName}</Badge>
                           )}
-                          <Badge variant="outline" className="capitalize">
+                          <Badge variant="outline" className="capitalize text-xs">
                             {order.type}
                           </Badge>
+                          <span className="text-xs text-muted-foreground">
+                            {formatDateTime(order.createdAt)}
+                          </span>
                         </div>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {formatDateTime(order.createdAt)} • {order.items.length} items
-                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="font-bold">{formatPrice(order.total)}</span>
+                          <span className="text-xs">
+                            {order.isPaid ? (
+                              <span className="text-status-online">Paid</span>
+                            ) : (
+                              <span className="text-status-busy">Unpaid</span>
+                            )}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            • {order.items.length} items
+                          </span>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <p className="font-bold text-lg">{formatPrice(order.total)}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {order.isPaid ? (
-                            <span className="text-status-online">Paid</span>
-                          ) : (
-                            <span className="text-status-busy">Unpaid</span>
-                          )}
-                        </p>
-                      </div>
-
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedOrder(order);
-                              setDetailsOpen(true);
-                            }}
-                          >
-                            <Eye className="h-4 w-4 mr-2" />
-                            View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handlePrint(order);
-                            }}
-                          >
-                            <Printer className="h-4 w-4 mr-2" />
-                            Print Receipt
-                          </DropdownMenuItem>
-                          {order.status === "preparing" && (
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                updateStatusMutation.mutate({
-                                  orderId: order._id,
-                                  status: "served",
-                                });
-                              }}
-                            >
-                              <CheckCircle className="h-4 w-4 mr-2" />
-                              Mark Served
-                            </DropdownMenuItem>
-                          )}
-                          {order.status === "served" && (
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                updateStatusMutation.mutate({
-                                  orderId: order._id,
-                                  status: "billed",
-                                });
-                              }}
-                            >
-                              <DollarSign className="h-4 w-4 mr-2" />
-                              Mark Billed
-                            </DropdownMenuItem>
-                          )}
-                          {(order.status === "preparing" || order.status === "served") && (
-                            <DropdownMenuItem
-                              className="text-destructive"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                updateStatusMutation.mutate({
-                                  orderId: order._id,
-                                  status: "cancelled",
-                                });
-                              }}
-                            >
-                              <XCircle className="h-4 w-4 mr-2" />
-                              Cancel Order
-                            </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                    <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        size="sm"
+                        variant={order.status === "preparing" ? "default" : "outline"}
+                        className={`text-xs h-7 px-2 ${order.status === "preparing" ? "bg-amber-500 border-amber-500 text-white" : ""}`}
+                        onClick={() => updateStatusMutation.mutate({ orderId: order._id, status: "preparing" })}
+                        disabled={order.status === "cancelled"}
+                        data-testid={`btn-preparing-${order._id}`}
+                      >
+                        <Clock className="h-3 w-3 mr-1" />
+                        Preparing
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant={order.status === "served" ? "default" : "outline"}
+                        className={`text-xs h-7 px-2 ${order.status === "served" ? "bg-blue-500 border-blue-500 text-white" : ""}`}
+                        onClick={() => updateStatusMutation.mutate({ orderId: order._id, status: "served" })}
+                        disabled={order.status === "cancelled"}
+                        data-testid={`btn-served-${order._id}`}
+                      >
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        Served
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant={order.status === "billed" ? "default" : "outline"}
+                        className={`text-xs h-7 px-2 ${order.status === "billed" ? "bg-green-500 border-green-500 text-white" : ""}`}
+                        onClick={() => updateStatusMutation.mutate({ orderId: order._id, status: "billed" })}
+                        disabled={order.status === "cancelled"}
+                        data-testid={`btn-billed-${order._id}`}
+                      >
+                        <DollarSign className="h-3 w-3 mr-1" />
+                        Billed
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant={order.status === "cancelled" ? "destructive" : "ghost"}
+                        className="text-xs h-7 px-2"
+                        onClick={() => updateStatusMutation.mutate({ orderId: order._id, status: "cancelled" })}
+                        data-testid={`btn-cancel-${order._id}`}
+                      >
+                        <XCircle className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-xs h-7 px-2"
+                        onClick={() => handlePrint(order)}
+                        data-testid={`btn-print-${order._id}`}
+                      >
+                        <Printer className="h-3 w-3" />
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
