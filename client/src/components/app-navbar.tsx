@@ -14,6 +14,7 @@ import {
   DollarSign,
   Menu,
   FileText,
+  Shield,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -28,7 +29,6 @@ import {
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 const operationsItems = [
   { title: "POS", url: "/pos", icon: ShoppingCart },
@@ -82,10 +82,7 @@ export function AppNavbar() {
     return true;
   });
 
-  const allNavItems = [
-    ...visibleOperationsItems,
-    ...(isAdmin ? adminItems : []),
-  ];
+  const isAdminRoute = location.startsWith("/admin") || location === "/dashboard";
 
   return (
     <nav className="h-14 border-b border-border bg-card shrink-0 sticky top-0 z-50">
@@ -103,31 +100,62 @@ export function AppNavbar() {
             </div>
           </Link>
 
-          <div className="hidden md:block min-w-0 flex-1">
-            <ScrollArea className="w-full">
-              <div className="flex items-center gap-1">
-                {allNavItems.map((item) => (
-                  <Link
-                    key={item.url}
-                    href={item.url}
-                    data-testid={`link-nav-${item.title.toLowerCase().replace(/\s+/g, "-")}`}
+          <div className="hidden md:flex items-center gap-1">
+            {visibleOperationsItems.map((item) => (
+              <Link
+                key={item.url}
+                href={item.url}
+                data-testid={`link-nav-${item.title.toLowerCase().replace(/\s+/g, "-")}`}
+              >
+                <Button
+                  variant={location === item.url ? "secondary" : "ghost"}
+                  size="sm"
+                  className={cn(
+                    "gap-1.5 transition-colors",
+                    location === item.url && "bg-accent text-accent-foreground"
+                  )}
+                >
+                  <item.icon className="w-4 h-4" />
+                  <span>{item.title}</span>
+                </Button>
+              </Link>
+            ))}
+
+            {isAdmin && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant={isAdminRoute ? "secondary" : "ghost"}
+                    size="sm"
+                    className={cn(
+                      "gap-1.5 transition-colors",
+                      isAdminRoute && "bg-accent text-accent-foreground"
+                    )}
+                    data-testid="button-admin-menu"
                   >
-                    <Button
-                      variant={location === item.url ? "secondary" : "ghost"}
-                      size="sm"
-                      className={cn(
-                        "gap-1.5 whitespace-nowrap transition-colors",
-                        location === item.url && "bg-accent text-accent-foreground"
-                      )}
-                    >
-                      <item.icon className="w-4 h-4" />
-                      <span>{item.title}</span>
-                    </Button>
-                  </Link>
-                ))}
-              </div>
-              <ScrollBar orientation="horizontal" className="invisible" />
-            </ScrollArea>
+                    <Shield className="w-4 h-4" />
+                    <span>Admin</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-48">
+                  {adminItems.map((item) => (
+                    <DropdownMenuItem key={item.title} asChild>
+                      <Link
+                        href={item.url}
+                        className={cn(
+                          "flex items-center gap-2 cursor-pointer",
+                          location === item.url && "bg-accent"
+                        )}
+                        data-testid={`link-admin-${item.title.toLowerCase().replace(/\s+/g, "-")}`}
+                      >
+                        <item.icon className="w-4 h-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
 
           <div className="md:hidden">
