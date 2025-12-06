@@ -22,7 +22,7 @@ app.use(express.urlencoded({ extended: false }));
 const MONGO_URI = process.env.MONGO_URI || "";
 const JWT_SECRET = process.env.JWT_SECRET || "fallback-secret-key";
 
-let cached = { conn: null, promise: null };
+let cached = { conn: null, promise: null, initialized: false };
 
 async function connectDB() {
   if (cached.conn) {
@@ -41,6 +41,12 @@ async function connectDB() {
 
   try {
     cached.conn = await cached.promise;
+    
+    // Initialize default admin user if no users exist
+    if (!cached.initialized) {
+      cached.initialized = true;
+      await initializeDefaultData();
+    }
   } catch (e) {
     cached.promise = null;
     throw e;
@@ -156,6 +162,41 @@ const Table = mongoose.models.Table || mongoose.model("Table", tableSchema);
 const Order = mongoose.models.Order || mongoose.model("Order", orderSchema);
 const Counter = mongoose.models.Counter || mongoose.model("Counter", counterSchema);
 const Settings = mongoose.models.Settings || mongoose.model("Settings", settingsSchema);
+
+async function initializeDefaultData() {
+  try {
+    const userCount = await User.countDocuments();
+    if (userCount === 0) {
+      console.log("No users found. Creating default admin user...");
+      const hashedPassword = await bcrypt.hash("admin", 10);
+      await User.create({
+        username: "admin",
+        password: hashedPassword,
+        name: "Administrator",
+        role: "admin",
+        isActive: true,
+      });
+      console.log("Default admin user created (username: admin, password: admin)");
+    }
+    
+    const settingsCount = await Settings.countDocuments();
+    if (settingsCount === 0) {
+      console.log("No settings found. Creating default settings...");
+      await Settings.create({
+        cafeName: "Desi Beats Café",
+        taxPercentage: 16,
+        isTaxInclusive: false,
+        currency: "Rs.",
+        receiptFooter: "Thank you for visiting Desi Beats Café!",
+        enableSoundNotifications: true,
+        autoLogoutMinutes: 30,
+      });
+      console.log("Default settings created");
+    }
+  } catch (error) {
+    console.error("Error initializing default data:", error);
+  }
+}
 
 async function getNextOrderNumber() {
   const counter = await Counter.findByIdAndUpdate(
