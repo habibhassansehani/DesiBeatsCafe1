@@ -1,5 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { IKContext, IKUpload } from "imagekitio-react";
 import {
   Package,
   Plus,
@@ -10,6 +11,9 @@ import {
   Eye,
   EyeOff,
   Loader2,
+  Upload,
+  ImageIcon,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,6 +57,21 @@ import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { Product, Category, Settings, ProductVariant, InsertProduct } from "@shared/schema";
 
+const IMAGEKIT_PUBLIC_KEY = import.meta.env.VITE_IMAGEKIT_PUBLIC_KEY || "";
+const IMAGEKIT_URL_ENDPOINT = import.meta.env.VITE_IMAGEKIT_URL_ENDPOINT || "";
+
+const authenticator = async () => {
+  try {
+    const response = await fetch("/api/imagekit/auth");
+    if (!response.ok) {
+      throw new Error("Authentication failed");
+    }
+    return await response.json();
+  } catch (error) {
+    throw new Error("Authentication failed");
+  }
+};
+
 export default function AdminProductsPage() {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
@@ -61,9 +80,11 @@ export default function AdminProductsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const uploadRef = useRef<HTMLInputElement>(null);
 
   // Form state
-  const [formData, setFormData] = useState<Partial<InsertProduct>>({
+  const [formData, setFormData] = useState<Partial<InsertProduct> & { image?: string }>({
     name: "",
     description: "",
     price: 0,
@@ -72,6 +93,7 @@ export default function AdminProductsPage() {
     isAvailable: true,
     isTaxable: true,
     sortOrder: 0,
+    image: "",
   });
 
   // Queries
@@ -180,6 +202,7 @@ export default function AdminProductsPage() {
       isAvailable: true,
       isTaxable: true,
       sortOrder: 0,
+      image: "",
     });
     setDialogOpen(true);
   };
@@ -195,6 +218,7 @@ export default function AdminProductsPage() {
       isAvailable: product.isAvailable,
       isTaxable: product.isTaxable,
       sortOrder: product.sortOrder,
+      image: product.image || "",
     });
     setDialogOpen(true);
   };
@@ -211,7 +235,27 @@ export default function AdminProductsPage() {
       isAvailable: true,
       isTaxable: true,
       sortOrder: 0,
+      image: "",
     });
+  };
+
+  const onUploadStart = () => {
+    setIsUploading(true);
+  };
+
+  const onUploadSuccess = (res: any) => {
+    setIsUploading(false);
+    setFormData({ ...formData, image: res.url });
+    toast({ title: "Image Uploaded", description: "Product image uploaded successfully" });
+  };
+
+  const onUploadError = (err: any) => {
+    setIsUploading(false);
+    toast({ title: "Upload Failed", description: err?.message || "Failed to upload image", variant: "destructive" });
+  };
+
+  const handleRemoveImage = () => {
+    setFormData({ ...formData, image: "" });
   };
 
   const handleSubmit = () => {
@@ -332,6 +376,16 @@ export default function AdminProductsPage() {
                   className={`overflow-visible ${!product.isAvailable ? "opacity-60" : ""}`}
                   data-testid={`product-card-${product._id}`}
                 >
+                  {product.image && (
+                    <div className="w-full h-32 overflow-hidden rounded-t-lg">
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                        data-testid={`img-product-${product._id}`}
+                      />
+                    </div>
+                  )}
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between gap-2 mb-3">
                       <div className="flex-1 min-w-0">
@@ -433,6 +487,73 @@ export default function AdminProductsPage() {
                 rows={3}
                 data-testid="input-product-description"
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Product Image</Label>
+              {formData.image ? (
+                <div className="relative w-full">
+                  <img
+                    src={formData.image}
+                    alt="Product preview"
+                    className="w-full h-40 object-cover rounded-md border"
+                    data-testid="img-product-preview"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-2 right-2 h-8 w-8"
+                    onClick={handleRemoveImage}
+                    data-testid="button-remove-image"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <IKContext
+                  publicKey={IMAGEKIT_PUBLIC_KEY}
+                  urlEndpoint={IMAGEKIT_URL_ENDPOINT}
+                  authenticator={authenticator}
+                >
+                  <div className="border-2 border-dashed rounded-md p-6 text-center">
+                    {isUploading ? (
+                      <div className="flex flex-col items-center gap-2">
+                        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">Uploading...</p>
+                      </div>
+                    ) : (
+                      <>
+                        <ImageIcon className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
+                        <p className="text-sm text-muted-foreground mb-3">
+                          Click to upload product image
+                        </p>
+                        <IKUpload
+                          fileName={`product-${Date.now()}`}
+                          folder="/cafe-pos/products"
+                          onUploadStart={onUploadStart}
+                          onSuccess={onUploadSuccess}
+                          onError={onUploadError}
+                          accept="image/*"
+                          className="hidden"
+                          ref={uploadRef}
+                          data-testid="input-image-upload"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => uploadRef.current?.click()}
+                          data-testid="button-upload-image"
+                        >
+                          <Upload className="h-4 w-4 mr-2" />
+                          Upload Image
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </IKContext>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">

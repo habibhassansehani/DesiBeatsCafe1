@@ -51,3 +51,5 @@ waitForPort = 5000
 [userenv.shared]
 MONGO_URI = "mongodb+srv://Truepathtemp:Truepathtemp@rightpath.kdovr8j.mongodb.net/newdesiposnenen?retryWrites=true&w=majority"
 JWT_SECRET = "f182afd385e24c55786862148c54f874"
+VITE_IMAGEKIT_PUBLIC_KEY = "public_JVw4d+0jNbkDj04hGjJP8XbKDOE="
+VITE_IMAGEKIT_URL_ENDPOINT = "https://ik.imagekit.io/truepath"

@@ -57,6 +57,7 @@
     "express-session": "^1.18.1",
     "framer-motion": "^11.13.1",
     "imagekit": "^6.0.0",
+    "imagekitio-react": "^4.3.0",
     "input-otp": "^1.4.2",
     "jsonwebtoken": "^9.0.2",
     "jspdf": "^3.0.4",
