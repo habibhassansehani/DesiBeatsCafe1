@@ -61,7 +61,7 @@ function GlobalCart() {
 
   return (
     <>
-      <div className="w-80 shrink-0 hidden lg:block border-l border-border">
+      <div className="w-80 shrink-0 hidden lg:block border-r border-border">
         <CartSidebar
           items={items}
           onUpdateQuantity={updateQuantity}
@@ -100,10 +100,10 @@ function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
     <div className="flex flex-col h-screen w-full">
       <AppNavbar />
       <div className="flex flex-1 overflow-hidden">
+        <GlobalCart />
         <main className="flex-1 overflow-hidden">
           {children}
         </main>
-        <GlobalCart />
       </div>
     </div>
   );
