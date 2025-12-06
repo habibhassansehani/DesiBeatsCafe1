@@ -101,6 +101,7 @@ export default function POSPage() {
       <div className="flex-1 overflow-hidden">
         <ProductGrid
           products={filteredProducts}
+          categories={categories}
           onAddToCart={addToCart}
           settings={settings || null}
           isLoading={productsLoading}
