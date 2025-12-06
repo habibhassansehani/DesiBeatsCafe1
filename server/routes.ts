@@ -12,6 +12,7 @@ import {
   Settings,
   getNextOrderNumber,
 } from "./models";
+import { getImageKitAuthParams } from "./imagekit";
 
 const JWT_SECRET = process.env.JWT_SECRET || "fallback-secret-key";
 
@@ -909,7 +910,6 @@ export async function registerRoutes(
   
   app.get("/api/imagekit/auth", (req: Request, res: Response) => {
     try {
-      const { getImageKitAuthParams } = require("./imagekit");
       const authParams = getImageKitAuthParams();
       res.json(authParams);
     } catch (error: any) {
