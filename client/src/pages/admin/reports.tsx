@@ -13,6 +13,19 @@ import {
   Loader2,
   FileSpreadsheet,
 } from "lucide-react";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -532,12 +545,152 @@ export default function AdminReportsPage() {
               </Card>
             </div>
 
+            <div className="grid gap-4 lg:grid-cols-3">
+              <Card data-testid="chart-order-type">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <UtensilsCrossed className="w-4 h-4" />
+                    Order Type Distribution
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {(reportData.summary.dineInCount > 0 || reportData.summary.takeawayCount > 0) ? (
+                    <ResponsiveContainer width="100%" height={250}>
+                      <PieChart>
+                        <Pie
+                          data={[
+                            { name: "Dine-In", value: reportData.summary.dineInCount, revenue: reportData.summary.dineInRevenue },
+                            { name: "Takeaway", value: reportData.summary.takeawayCount, revenue: reportData.summary.takeawayRevenue },
+                          ]}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="value"
+                        >
+                          <Cell fill="hsl(var(--primary))" />
+                          <Cell fill="hsl(var(--muted-foreground))" />
+                        </Pie>
+                        <Tooltip
+                          formatter={(value: number, name: string, props: any) => [
+                            `${value} orders (${currency} ${props.payload.revenue.toFixed(2)})`,
+                            name,
+                          ]}
+                          contentStyle={{
+                            backgroundColor: "hsl(var(--background))",
+                            border: "1px solid hsl(var(--border))",
+                            borderRadius: "8px",
+                          }}
+                        />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex items-center justify-center h-[250px] text-muted-foreground text-sm">
+                      No orders to display
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card data-testid="chart-payment-methods">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <CreditCard className="w-4 h-4" />
+                    Payment Methods
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {reportData.paymentBreakdown.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={250}>
+                      <BarChart
+                        data={reportData.paymentBreakdown.map((p) => ({
+                          name: p.method.charAt(0).toUpperCase() + p.method.slice(1),
+                          amount: p.amount,
+                          count: p.count,
+                        }))}
+                        margin={{ top: 5, right: 10, left: 10, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                        <XAxis dataKey="name" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
+                        <YAxis tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
+                        <Tooltip
+                          formatter={(value: number, name: string) => [
+                            name === "amount" ? `${currency} ${value.toFixed(2)}` : value,
+                            name === "amount" ? "Revenue" : "Count",
+                          ]}
+                          contentStyle={{
+                            backgroundColor: "hsl(var(--background))",
+                            border: "1px solid hsl(var(--border))",
+                            borderRadius: "8px",
+                          }}
+                        />
+                        <Bar dataKey="amount" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex items-center justify-center h-[250px] text-muted-foreground text-sm">
+                      No payment data available
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card data-testid="chart-top-items">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Package className="w-4 h-4" />
+                    Top Selling Items
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {reportData.topSellingItems.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={250}>
+                      <BarChart
+                        data={reportData.topSellingItems.slice(0, 5).map((item) => ({
+                          name: item.name.length > 12 ? item.name.substring(0, 12) + "..." : item.name,
+                          fullName: item.name,
+                          quantity: item.quantity,
+                          revenue: item.revenue,
+                        }))}
+                        layout="vertical"
+                        margin={{ top: 5, right: 10, left: 10, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                        <XAxis type="number" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
+                        <YAxis dataKey="name" type="category" tick={{ fontSize: 11 }} width={80} stroke="hsl(var(--muted-foreground))" />
+                        <Tooltip
+                          formatter={(value: number, name: string, props: any) => [
+                            name === "quantity" ? `${value} sold` : `${currency} ${value.toFixed(2)}`,
+                            name === "quantity" ? "Quantity" : "Revenue",
+                          ]}
+                          labelFormatter={(label, payload) => payload?.[0]?.payload?.fullName || label}
+                          contentStyle={{
+                            backgroundColor: "hsl(var(--background))",
+                            border: "1px solid hsl(var(--border))",
+                            borderRadius: "8px",
+                          }}
+                        />
+                        <Bar dataKey="quantity" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex items-center justify-center h-[250px] text-muted-foreground text-sm">
+                      No items sold
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
             <div className="grid gap-4 lg:grid-cols-2">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <CreditCard className="w-4 h-4" />
-                    Payment Methods
+                    Payment Breakdown
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -573,7 +726,7 @@ export default function AdminReportsPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Package className="w-4 h-4" />
-                    Top Selling Items
+                    Top Items List
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
