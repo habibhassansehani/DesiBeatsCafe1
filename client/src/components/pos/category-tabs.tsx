@@ -1,4 +1,3 @@
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Category } from "@shared/schema";
@@ -18,54 +17,52 @@ export function CategoryTabs({
 }: CategoryTabsProps) {
   if (isLoading) {
     return (
-      <div className="flex gap-2 p-4 border-b border-border overflow-x-auto">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={i} className="h-10 w-24 shrink-0" />
+      <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-2 p-4 border-b border-border">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <Skeleton key={i} className="h-10" />
         ))}
       </div>
     );
   }
 
+  const activeCategories = categories
+    .filter((cat) => cat.isActive)
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+
   return (
-    <div className="sticky top-0 z-40 bg-background border-b border-border">
-      <ScrollArea className="w-full">
-        <div className="flex gap-3 p-4">
-          <Button
-            size="lg"
-            variant={selectedCategoryId === null ? "default" : "outline"}
-            className="shrink-0 px-6 text-base font-semibold"
-            onClick={() => onSelectCategory(null)}
-            data-testid="button-category-all"
-          >
-            All Items
-          </Button>
-          {categories
-            .filter((cat) => cat.isActive)
-            .sort((a, b) => a.sortOrder - b.sortOrder)
-            .map((category) => {
-              const isSelected = selectedCategoryId === category._id;
-              const categoryColor = category.color || "#6366f1";
-              return (
-                <Button
-                  key={category._id}
-                  size="lg"
-                  className={`shrink-0 px-6 text-base font-semibold text-white border-2 ${
-                    isSelected ? "" : "opacity-70"
-                  }`}
-                  style={{
-                    backgroundColor: categoryColor,
-                    borderColor: categoryColor,
-                  }}
-                  onClick={() => onSelectCategory(category._id)}
-                  data-testid={`button-category-${category._id}`}
-                >
-                  {category.name}
-                </Button>
-              );
-            })}
-        </div>
-        <ScrollBar orientation="horizontal" />
-      </ScrollArea>
+    <div className="sticky top-0 z-40 bg-background border-b border-border p-3">
+      <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-2">
+        <Button
+          size="sm"
+          variant={selectedCategoryId === null ? "default" : "outline"}
+          className="font-semibold text-sm truncate"
+          onClick={() => onSelectCategory(null)}
+          data-testid="button-category-all"
+        >
+          All
+        </Button>
+        {activeCategories.map((category) => {
+          const isSelected = selectedCategoryId === category._id;
+          const categoryColor = category.color || "#6366f1";
+          return (
+            <Button
+              key={category._id}
+              size="sm"
+              className={`font-semibold text-sm text-white truncate ${
+                isSelected ? "" : "opacity-80"
+              }`}
+              style={{
+                backgroundColor: categoryColor,
+                borderColor: categoryColor,
+              }}
+              onClick={() => onSelectCategory(category._id)}
+              data-testid={`button-category-${category._id}`}
+            >
+              {category.name}
+            </Button>
+          );
+        })}
+      </div>
     </div>
   );
 }
