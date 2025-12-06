@@ -62,7 +62,15 @@ const IMAGEKIT_URL_ENDPOINT = import.meta.env.VITE_IMAGEKIT_URL_ENDPOINT || "";
 
 const authenticator = async () => {
   try {
-    const response = await fetch("/api/imagekit/auth");
+    const token = localStorage.getItem("pos_token");
+    if (!token) {
+      throw new Error("Not authenticated");
+    }
+    const response = await fetch("/api/imagekit/auth", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     if (!response.ok) {
       throw new Error("Authentication failed");
     }
@@ -245,6 +253,21 @@ export default function AdminProductsPage() {
 
   const onUploadSuccess = (res: any) => {
     setIsUploading(false);
+    if (!res?.url || typeof res.url !== "string") {
+      toast({ title: "Upload Failed", description: "Invalid response from image service", variant: "destructive" });
+      return;
+    }
+    try {
+      const parsedUrl = new URL(res.url);
+      const trustedUrl = new URL(IMAGEKIT_URL_ENDPOINT);
+      if (parsedUrl.protocol !== "https:" || parsedUrl.hostname !== trustedUrl.hostname) {
+        toast({ title: "Upload Failed", description: "Image URL not from trusted source", variant: "destructive" });
+        return;
+      }
+    } catch {
+      toast({ title: "Upload Failed", description: "Invalid image URL format", variant: "destructive" });
+      return;
+    }
     setFormData({ ...formData, image: res.url });
     toast({ title: "Image Uploaded", description: "Product image uploaded successfully" });
   };

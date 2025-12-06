@@ -341,12 +341,30 @@ app.get("/api/products", async (req, res) => {
   }
 });
 
+const IMAGEKIT_TRUSTED_DOMAIN = process.env.VITE_IMAGEKIT_URL_ENDPOINT || process.env.IMAGEKIT_URL_ENDPOINT || "";
+
+function validateImageUrl(url) {
+  if (!url || url === "") return true;
+  if (typeof url !== "string") return false;
+  try {
+    const parsedUrl = new URL(url);
+    const trustedUrl = new URL(IMAGEKIT_TRUSTED_DOMAIN);
+    return parsedUrl.protocol === "https:" && parsedUrl.hostname === trustedUrl.hostname;
+  } catch {
+    return false;
+  }
+}
+
 app.post("/api/products", async (req, res) => {
   try {
     await connectDB();
     const { name, description, price, categoryId, variants, isAvailable, isTaxable, image, sortOrder } = req.body;
     if (!name || price === undefined || !categoryId) {
       return res.status(400).json({ message: "Name, price, and category are required" });
+    }
+
+    if (image && !validateImageUrl(image)) {
+      return res.status(400).json({ message: "Invalid image URL" });
     }
 
     const product = await Product.create({
@@ -365,6 +383,10 @@ app.patch("/api/products/:id", async (req, res) => {
     await connectDB();
     const { id } = req.params;
     const { name, description, price, categoryId, variants, isAvailable, isTaxable, image, sortOrder } = req.body;
+
+    if (image !== undefined && image !== "" && !validateImageUrl(image)) {
+      return res.status(400).json({ message: "Invalid image URL" });
+    }
 
     const updateData = {};
     if (name) updateData.name = name;
@@ -644,7 +666,10 @@ app.get("/api/dashboard/stats", async (req, res) => {
   }
 });
 
-app.get("/api/imagekit/auth", (req, res) => {
+app.get("/api/imagekit/auth", authMiddleware, (req, res) => {
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ message: "Admin access required" });
+  }
   try {
     const authParams = getImageKitAuthParams();
     res.json(authParams);
