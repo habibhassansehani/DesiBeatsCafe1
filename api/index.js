@@ -96,6 +96,7 @@ const productSchema = new mongoose.Schema({
   isAvailable: { type: Boolean, default: true },
   isTaxable: { type: Boolean, default: true },
   image: { type: String },
+  imageFileId: { type: String },
   sortOrder: { type: Number, default: 0 },
 });
 
@@ -588,7 +589,7 @@ function validateImageUrl(url) {
 app.post("/api/products", async (req, res) => {
   try {
     await connectDB();
-    const { name, description, price, categoryId, variants, isAvailable, isTaxable, image, sortOrder } = req.body;
+    const { name, description, price, categoryId, variants, isAvailable, isTaxable, image, imageFileId, sortOrder } = req.body;
     if (!name || price === undefined || !categoryId) {
       return res.status(400).json({ message: "Name, price, and category are required" });
     }
@@ -597,9 +598,13 @@ app.post("/api/products", async (req, res) => {
       return res.status(400).json({ message: "Invalid image URL" });
     }
 
+    if (imageFileId && !/^\/cafe-pos\/(products|settings)\//.test(imageFileId)) {
+      return res.status(400).json({ message: "Invalid image file path" });
+    }
+
     const product = await Product.create({
       name, description, price, categoryId: new mongoose.Types.ObjectId(categoryId),
-      variants: variants || [], isAvailable: isAvailable !== false, isTaxable: isTaxable !== false, image, sortOrder: sortOrder || 0,
+      variants: variants || [], isAvailable: isAvailable !== false, isTaxable: isTaxable !== false, image, imageFileId, sortOrder: sortOrder || 0,
     });
 
     res.status(201).json({ ...product.toObject(), _id: product._id.toString(), categoryId: product.categoryId.toString() });
@@ -612,10 +617,14 @@ app.patch("/api/products/:id", async (req, res) => {
   try {
     await connectDB();
     const { id } = req.params;
-    const { name, description, price, categoryId, variants, isAvailable, isTaxable, image, sortOrder } = req.body;
+    const { name, description, price, categoryId, variants, isAvailable, isTaxable, image, imageFileId, sortOrder } = req.body;
 
     if (image !== undefined && image !== "" && !validateImageUrl(image)) {
       return res.status(400).json({ message: "Invalid image URL" });
+    }
+
+    if (imageFileId !== undefined && imageFileId !== "" && !/^\/cafe-pos\/(products|settings)\//.test(imageFileId)) {
+      return res.status(400).json({ message: "Invalid image file path" });
     }
 
     const updateData = {};
@@ -626,7 +635,13 @@ app.patch("/api/products/:id", async (req, res) => {
     if (variants !== undefined) updateData.variants = variants;
     if (typeof isAvailable === "boolean") updateData.isAvailable = isAvailable;
     if (typeof isTaxable === "boolean") updateData.isTaxable = isTaxable;
-    if (image !== undefined) updateData.image = image;
+    if (image !== undefined && image !== "") updateData.image = image;
+    if (imageFileId !== undefined && imageFileId !== "") updateData.imageFileId = imageFileId;
+    // Allow clearing both fields explicitly
+    if (image === "" && imageFileId === "") {
+      updateData.image = "";
+      updateData.imageFileId = "";
+    }
     if (typeof sortOrder === "number") updateData.sortOrder = sortOrder;
 
     const product = await Product.findByIdAndUpdate(id, updateData, { new: true });
@@ -853,13 +868,27 @@ app.patch("/api/settings", async (req, res) => {
 app.get("/api/dashboard/stats", async (req, res) => {
   try {
     await connectDB();
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // Use Pakistan Standard Time (Asia/Karachi) for "today" calculation
+    // Get current date in PKT timezone as YYYY-MM-DD
+    const nowUTC = new Date();
+    const pktDateStr = nowUTC.toLocaleDateString('en-CA', { timeZone: 'Asia/Karachi' });
+    // Create a reference point to calculate the actual PKT offset
+    // By comparing UTC time display vs PKT time display at the same instant
+    const refTime = new Date('2000-01-01T12:00:00Z'); // Fixed reference point
+    const utcStr = refTime.toLocaleString('en-US', { timeZone: 'UTC', hour12: false });
+    const pktStr = refTime.toLocaleString('en-US', { timeZone: 'Asia/Karachi', hour12: false });
+    const utcHour = new Date(utcStr).getHours();
+    const pktHour = new Date(pktStr).getHours();
+    const offsetHours = pktHour - utcHour; // PKT is +5 ahead of UTC
+    // Midnight PKT in UTC = midnight of PKT date minus the offset
+    // e.g., 2024-12-07 00:00 PKT = 2024-12-06 19:00 UTC (5 hours earlier)
+    const startOfTodayUTC = new Date(`${pktDateStr}T00:00:00Z`);
+    startOfTodayUTC.setTime(startOfTodayUTC.getTime() - (offsetHours * 60 * 60 * 1000));
 
-    const todayOrders = await Order.find({ createdAt: { $gte: today }, status: { $ne: "cancelled" } }).lean();
+    const todayOrders = await Order.find({ createdAt: { $gte: startOfTodayUTC }, status: { $ne: "cancelled" } }).lean();
     const todaySales = todayOrders.reduce((sum, o) => sum + o.total, 0);
     const pendingOrders = await Order.countDocuments({ status: { $in: ["preparing", "served"] } });
-    const cancelledOrders = await Order.countDocuments({ createdAt: { $gte: today }, status: "cancelled" });
+    const cancelledOrders = await Order.countDocuments({ createdAt: { $gte: startOfTodayUTC }, status: "cancelled" });
 
     const paymentBreakdown = {};
     todayOrders.forEach((order) => {
@@ -903,6 +932,29 @@ app.get("/api/imagekit/auth", authMiddleware, (req, res) => {
   try {
     const authParams = getImageKitAuthParams();
     res.json(authParams);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.post("/api/imagekit/signed-url", authMiddleware, (req, res) => {
+  try {
+    const { filePath } = req.body;
+    if (!filePath) {
+      return res.status(400).json({ message: "File path is required" });
+    }
+    // Validate that filePath is within allowed folder to prevent unauthorized access
+    const allowedFolderPattern = /^\/cafe-pos\/(products|settings)\//;
+    if (!allowedFolderPattern.test(filePath)) {
+      return res.status(403).json({ message: "Access to this file path is not allowed" });
+    }
+    const ik = getImageKit();
+    const signedUrl = ik.url({
+      path: filePath,
+      signed: true,
+      expireSeconds: 3600,
+    });
+    res.json({ signedUrl });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -57,6 +57,7 @@ export const productSchema = z.object({
   isAvailable: z.boolean().default(true),
   isTaxable: z.boolean().default(true),
   image: z.string().optional(),
+  imageFileId: z.string().optional(),
   sortOrder: z.number().default(0),
 });
 

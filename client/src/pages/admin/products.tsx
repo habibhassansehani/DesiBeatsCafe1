@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { IKContext, IKUpload } from "imagekitio-react";
 import {
@@ -80,6 +80,84 @@ const authenticator = async () => {
   }
 };
 
+function SignedImage({ 
+  filePath, 
+  fallbackUrl,
+  alt, 
+  className,
+  "data-testid": dataTestId
+}: { 
+  filePath?: string; 
+  fallbackUrl?: string;
+  alt: string; 
+  className?: string;
+  "data-testid"?: string;
+}) {
+  const [signedUrl, setSignedUrl] = useState<string>("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    // Reset state when dependencies change
+    setSignedUrl("");
+    setLoading(true);
+    setError(false);
+    
+    const fetchSignedUrl = async () => {
+      // If we have a filePath, always use signed URL (don't fallback to public URL which will 403)
+      if (filePath) {
+        try {
+          const token = localStorage.getItem("pos_token");
+          const res = await fetch("/api/imagekit/signed-url", {
+            method: "POST",
+            headers: { 
+              "Content-Type": "application/json", 
+              Authorization: `Bearer ${token}` 
+            },
+            body: JSON.stringify({ filePath }),
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setSignedUrl(data.signedUrl);
+          } else {
+            setError(true);
+          }
+        } catch {
+          setError(true);
+        }
+        setLoading(false);
+        return;
+      }
+      
+      // No filePath - use fallbackUrl only for legacy public images
+      if (fallbackUrl) {
+        setSignedUrl(fallbackUrl);
+      }
+      setLoading(false);
+    };
+    
+    fetchSignedUrl();
+  }, [filePath, fallbackUrl]);
+
+  if (loading) {
+    return (
+      <div className={`flex items-center justify-center ${className}`}>
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (error || !signedUrl) {
+    return (
+      <div className={`flex items-center justify-center bg-muted ${className}`}>
+        <ImageIcon className="h-8 w-8 text-muted-foreground" />
+      </div>
+    );
+  }
+
+  return <img src={signedUrl} alt={alt} className={className} data-testid={dataTestId} />;
+}
+
 export default function AdminProductsPage() {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
@@ -92,7 +170,7 @@ export default function AdminProductsPage() {
   const uploadRef = useRef<HTMLInputElement>(null);
 
   // Form state
-  const [formData, setFormData] = useState<Partial<InsertProduct> & { image?: string }>({
+  const [formData, setFormData] = useState<Partial<InsertProduct> & { image?: string; imageFileId?: string }>({
     name: "",
     description: "",
     price: 0,
@@ -102,6 +180,7 @@ export default function AdminProductsPage() {
     isTaxable: true,
     sortOrder: 0,
     image: "",
+    imageFileId: "",
   });
 
   // Queries
@@ -211,6 +290,7 @@ export default function AdminProductsPage() {
       isTaxable: true,
       sortOrder: 0,
       image: "",
+      imageFileId: "",
     });
     setDialogOpen(true);
   };
@@ -227,6 +307,7 @@ export default function AdminProductsPage() {
       isTaxable: product.isTaxable,
       sortOrder: product.sortOrder,
       image: product.image || "",
+      imageFileId: product.imageFileId || "",
     });
     setDialogOpen(true);
   };
@@ -244,6 +325,7 @@ export default function AdminProductsPage() {
       isTaxable: true,
       sortOrder: 0,
       image: "",
+      imageFileId: "",
     });
   };
 
@@ -253,22 +335,17 @@ export default function AdminProductsPage() {
 
   const onUploadSuccess = (res: any) => {
     setIsUploading(false);
-    if (!res?.url || typeof res.url !== "string") {
+    if (!res?.filePath || typeof res.filePath !== "string") {
       toast({ title: "Upload Failed", description: "Invalid response from image service", variant: "destructive" });
       return;
     }
-    try {
-      const parsedUrl = new URL(res.url);
-      const trustedUrl = new URL(IMAGEKIT_URL_ENDPOINT);
-      if (parsedUrl.protocol !== "https:" || parsedUrl.hostname !== trustedUrl.hostname) {
-        toast({ title: "Upload Failed", description: "Image URL not from trusted source", variant: "destructive" });
-        return;
-      }
-    } catch {
-      toast({ title: "Upload Failed", description: "Invalid image URL format", variant: "destructive" });
+    const allowedFolderPattern = /^\/cafe-pos\/(products|settings)\//;
+    if (!allowedFolderPattern.test(res.filePath)) {
+      toast({ title: "Upload Failed", description: "File uploaded to unauthorized location", variant: "destructive" });
       return;
     }
-    setFormData({ ...formData, image: res.url });
+    // For private files, don't store the public URL (it will 403) - only store imageFileId
+    setFormData({ ...formData, image: "", imageFileId: res.filePath });
     toast({ title: "Image Uploaded", description: "Product image uploaded successfully" });
   };
 
@@ -278,7 +355,7 @@ export default function AdminProductsPage() {
   };
 
   const handleRemoveImage = () => {
-    setFormData({ ...formData, image: "" });
+    setFormData({ ...formData, image: "", imageFileId: "" });
   };
 
   const handleSubmit = () => {
@@ -399,10 +476,11 @@ export default function AdminProductsPage() {
                   className={`overflow-visible ${!product.isAvailable ? "opacity-60" : ""}`}
                   data-testid={`product-card-${product._id}`}
                 >
-                  {product.image && (
+                  {(product.imageFileId || product.image) && (
                     <div className="w-full h-32 overflow-hidden rounded-t-lg">
-                      <img
-                        src={product.image}
+                      <SignedImage
+                        filePath={product.imageFileId}
+                        fallbackUrl={product.image}
                         alt={product.name}
                         className="w-full h-full object-cover"
                         data-testid={`img-product-${product._id}`}
@@ -514,10 +592,11 @@ export default function AdminProductsPage() {
 
             <div className="space-y-2">
               <Label>Product Image</Label>
-              {formData.image ? (
+              {(formData.imageFileId || formData.image) ? (
                 <div className="relative w-full">
-                  <img
-                    src={formData.image}
+                  <SignedImage
+                    filePath={formData.imageFileId}
+                    fallbackUrl={formData.image}
                     alt="Product preview"
                     className="w-full h-40 object-cover rounded-md border"
                     data-testid="img-product-preview"
@@ -554,6 +633,7 @@ export default function AdminProductsPage() {
                         <IKUpload
                           fileName={`product-${Date.now()}`}
                           folder="/cafe-pos/products"
+                          isPrivateFile={true}
                           onUploadStart={onUploadStart}
                           onSuccess={onUploadSuccess}
                           onError={onUploadError}
