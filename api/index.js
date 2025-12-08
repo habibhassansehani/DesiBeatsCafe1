@@ -875,30 +875,22 @@ app.patch("/api/settings", async (req, res) => {
 app.get("/api/dashboard/stats", async (req, res) => {
   try {
     await connectDB();
-    // Use Pakistan Standard Time (Asia/Karachi) for "today" calculation
-    // Get current date in PKT timezone as YYYY-MM-DD
-    const nowUTC = new Date();
-    const pktDateStr = nowUTC.toLocaleDateString('en-CA', { timeZone: 'Asia/Karachi' });
-    // Create a reference point to calculate the actual PKT offset
-    // By comparing UTC time display vs PKT time display at the same instant
-    const refTime = new Date('2000-01-01T12:00:00Z'); // Fixed reference point
-    const utcStr = refTime.toLocaleString('en-US', { timeZone: 'UTC', hour12: false });
-    const pktStr = refTime.toLocaleString('en-US', { timeZone: 'Asia/Karachi', hour12: false });
-    const utcHour = new Date(utcStr).getHours();
-    const pktHour = new Date(pktStr).getHours();
-    const offsetHours = pktHour - utcHour; // PKT is +5 ahead of UTC
-    // Midnight PKT in UTC = midnight of PKT date minus the offset
-    // e.g., 2024-12-07 00:00 PKT = 2024-12-06 19:00 UTC (5 hours earlier)
-    const startOfTodayUTC = new Date(`${pktDateStr}T00:00:00Z`);
-    startOfTodayUTC.setTime(startOfTodayUTC.getTime() - (offsetHours * 60 * 60 * 1000));
+    // Use UTC-based date for consistent behavior across timezones
+    const now = new Date();
+    const todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
+    const todayEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999));
 
-    const todayOrders = await Order.find({ createdAt: { $gte: startOfTodayUTC }, status: { $ne: "cancelled" } }).lean();
-    const todaySales = todayOrders.reduce((sum, o) => sum + o.total, 0);
+    const ordersForStats = await Order.find({
+      createdAt: { $gte: todayStart, $lte: todayEnd },
+      status: { $ne: "cancelled" },
+    }).lean();
+
+    const todaySales = ordersForStats.reduce((sum, o) => sum + o.total, 0);
     const pendingOrders = await Order.countDocuments({ status: { $in: ["preparing", "served"] } });
-    const cancelledOrders = await Order.countDocuments({ createdAt: { $gte: startOfTodayUTC }, status: "cancelled" });
+    const cancelledOrders = await Order.countDocuments({ createdAt: { $gte: todayStart }, status: "cancelled" });
 
     const paymentBreakdown = {};
-    todayOrders.forEach((order) => {
+    ordersForStats.forEach((order) => {
       if (order.payments) {
         order.payments.forEach((payment) => {
           if (!paymentBreakdown[payment.method]) {
@@ -910,22 +902,76 @@ app.get("/api/dashboard/stats", async (req, res) => {
       }
     });
 
-    const topProducts = {};
-    todayOrders.forEach((order) => {
+    const itemSales = {};
+    ordersForStats.forEach((order) => {
       order.items.forEach((item) => {
         const key = item.productName;
-        if (!topProducts[key]) {
-          topProducts[key] = { name: item.productName, quantity: 0, revenue: 0 };
+        if (!itemSales[key]) {
+          itemSales[key] = { name: item.productName, quantity: 0, revenue: 0 };
         }
-        topProducts[key].quantity += item.quantity;
-        topProducts[key].revenue += item.price * item.quantity;
+        itemSales[key].quantity += item.quantity;
+        itemSales[key].revenue += item.price * item.quantity;
       });
     });
 
-    const sortedProducts = Object.values(topProducts).sort((a, b) => b.revenue - a.revenue).slice(0, 5);
+    const topSellingItems = Object.values(itemSales)
+      .sort((a, b) => b.quantity - a.quantity)
+      .slice(0, 10);
+
+    const categories = await Category.find().lean();
+    const products = await Product.find().lean();
+    const productCategoryMap = {};
+    products.forEach((p) => {
+      productCategoryMap[p._id.toString()] = p.categoryId.toString();
+    });
+
+    const categorySalesMap = {};
+    categories.forEach((c) => {
+      categorySalesMap[c._id.toString()] = 0;
+    });
+
+    ordersForStats.forEach((order) => {
+      order.items.forEach((item) => {
+        const catId = productCategoryMap[item.productId.toString()];
+        if (catId && categorySalesMap[catId] !== undefined) {
+          categorySalesMap[catId] += item.price * item.quantity;
+        }
+      });
+    });
+
+    const categorySales = categories.map((c) => ({
+      category: c.name,
+      amount: categorySalesMap[c._id.toString()] || 0,
+    })).filter((c) => c.amount > 0);
+
+    const recentOrders = await Order.find()
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .lean();
 
     res.json({
-      todaySales, ordersCount: todayOrders.length, pendingOrders, cancelledOrders, paymentBreakdown, topProducts: sortedProducts,
+      todaySales,
+      todayOrders: ordersForStats.length,
+      pendingOrders,
+      cancelledOrders,
+      paymentBreakdown: Object.entries(paymentBreakdown).map(([method, data]) => ({
+        method,
+        amount: data.amount,
+        count: data.count,
+      })),
+      topSellingItems,
+      categorySales,
+      recentOrders: recentOrders.map((o) => ({
+        ...o,
+        _id: o._id.toString(),
+        tableId: o.tableId?.toString(),
+        items: o.items.map(item => ({
+          ...item,
+          productId: item.productId.toString()
+        })),
+        createdAt: o.createdAt.toISOString(),
+        updatedAt: o.updatedAt.toISOString(),
+      })),
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
