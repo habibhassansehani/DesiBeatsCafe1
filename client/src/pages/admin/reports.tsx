@@ -146,7 +146,7 @@ export default function AdminReportsPage() {
     }
   }, [dateRange, customStartDate, customEndDate]);
 
-  const { data: reportData, isLoading } = useQuery<ReportData>({
+  const { data: reportData, isLoading, isError, error } = useQuery<ReportData>({
     queryKey: ["/api/reports", startDate, endDate],
     queryFn: async () => {
       const response = await fetch(`/api/reports?startDate=${startDate}&endDate=${endDate}`, {
@@ -154,10 +154,14 @@ export default function AdminReportsPage() {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (!response.ok) throw new Error("Failed to fetch reports");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to fetch reports");
+      }
       return response.json();
     },
     enabled: !!token,
+    retry: 1,
   });
 
   const { data: settings } = useQuery<Settings>({
@@ -481,7 +485,27 @@ export default function AdminReportsPage() {
           <div className="flex items-center justify-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
           </div>
-        ) : reportData ? (
+        ) : isError ? (
+          <Card className="p-8">
+            <div className="flex flex-col items-center justify-center text-center">
+              <FileText className="w-12 h-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Failed to load reports</h3>
+              <p className="text-sm text-muted-foreground">
+                {(error as Error)?.message || "An error occurred while fetching report data"}
+              </p>
+            </div>
+          </Card>
+        ) : !reportData ? (
+          <Card className="p-8">
+            <div className="flex flex-col items-center justify-center text-center">
+              <FileText className="w-12 h-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No data available</h3>
+              <p className="text-sm text-muted-foreground">
+                Please log in as admin to view reports
+              </p>
+            </div>
+          </Card>
+        ) : (
           <>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <Card>
@@ -818,7 +842,7 @@ export default function AdminReportsPage() {
               </CardContent>
             </Card>
           </>
-        ) : null}
+        )}
       </div>
     </ScrollArea>
   );

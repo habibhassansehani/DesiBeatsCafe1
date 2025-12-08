@@ -686,28 +686,32 @@ export async function registerRoutes(
   
   app.get("/api/dashboard/stats", async (req: Request, res: Response) => {
     try {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      // Today's orders
-      const todayOrders = await Order.find({
-        createdAt: { $gte: today },
+      // Use UTC-based date for consistent behavior across timezones
+      const now = new Date();
+      // Get start of today in UTC
+      const todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
+      // Get end of today in UTC
+      const todayEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999));
+      
+      // Get today's orders using strict UTC day boundaries
+      const ordersForStats = await Order.find({
+        createdAt: { $gte: todayStart, $lte: todayEnd },
         status: { $ne: "cancelled" },
       }).lean();
 
       // Calculate stats
-      const todaySales = todayOrders.reduce((sum, o) => sum + o.total, 0);
+      const todaySales = ordersForStats.reduce((sum, o) => sum + o.total, 0);
       const pendingOrders = await Order.countDocuments({
         status: { $in: ["preparing", "served"] },
       });
       const cancelledOrders = await Order.countDocuments({
-        createdAt: { $gte: today },
+        createdAt: { $gte: todayStart },
         status: "cancelled",
       });
 
-      // Payment breakdown
+      // Payment breakdown - use ordersForStats for consistent results
       const paymentBreakdown: { [key: string]: { amount: number; count: number } } = {};
-      todayOrders.forEach((order) => {
+      ordersForStats.forEach((order) => {
         order.payments.forEach((payment) => {
           if (!paymentBreakdown[payment.method]) {
             paymentBreakdown[payment.method] = { amount: 0, count: 0 };
@@ -717,9 +721,9 @@ export async function registerRoutes(
         });
       });
 
-      // Top selling items
+      // Top selling items - use ordersForStats for consistent results
       const itemSales: { [key: string]: { name: string; quantity: number; revenue: number } } = {};
-      todayOrders.forEach((order) => {
+      ordersForStats.forEach((order) => {
         order.items.forEach((item) => {
           const key = item.productName;
           if (!itemSales[key]) {
@@ -734,7 +738,7 @@ export async function registerRoutes(
         .sort((a, b) => b.quantity - a.quantity)
         .slice(0, 10);
 
-      // Category sales
+      // Category sales - use ordersForStats for consistent results
       const categories = await Category.find().lean();
       const products = await Product.find().lean();
       const productCategoryMap: { [key: string]: string } = {};
@@ -747,7 +751,7 @@ export async function registerRoutes(
         categorySales[c._id.toString()] = 0;
       });
 
-      todayOrders.forEach((order) => {
+      ordersForStats.forEach((order) => {
         order.items.forEach((item) => {
           const catId = productCategoryMap[item.productId.toString()];
           if (catId && categorySales[catId] !== undefined) {
@@ -769,7 +773,7 @@ export async function registerRoutes(
 
       res.json({
         todaySales,
-        todayOrders: todayOrders.length,
+        todayOrders: ordersForStats.length,
         pendingOrders,
         cancelledOrders,
         paymentBreakdown: Object.entries(paymentBreakdown).map(([method, data]) => ({
@@ -807,14 +811,17 @@ export async function registerRoutes(
       let dateFilter: any = {};
       
       if (startDate && endDate) {
-        const start = new Date(startDate as string);
-        start.setHours(0, 0, 0, 0);
-        const end = new Date(endDate as string);
-        end.setHours(23, 59, 59, 999);
+        // Parse dates as UTC to ensure consistent behavior across timezones
+        const startParts = (startDate as string).split('-').map(Number);
+        const endParts = (endDate as string).split('-').map(Number);
+        
+        const start = new Date(Date.UTC(startParts[0], startParts[1] - 1, startParts[2], 0, 0, 0, 0));
+        const end = new Date(Date.UTC(endParts[0], endParts[1] - 1, endParts[2], 23, 59, 59, 999));
+        
         dateFilter = { createdAt: { $gte: start, $lte: end } };
       } else if (startDate) {
-        const start = new Date(startDate as string);
-        start.setHours(0, 0, 0, 0);
+        const startParts = (startDate as string).split('-').map(Number);
+        const start = new Date(Date.UTC(startParts[0], startParts[1] - 1, startParts[2], 0, 0, 0, 0));
         dateFilter = { createdAt: { $gte: start } };
       }
 
