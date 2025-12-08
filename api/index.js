@@ -403,6 +403,13 @@ function authMiddleware(req, res, next) {
   }
 }
 
+function adminMiddleware(req, res, next) {
+  if (req.user?.role !== "admin") {
+    return res.status(403).json({ message: "Admin access required" });
+  }
+  next();
+}
+
 app.post("/api/auth/login", async (req, res) => {
   try {
     await connectDB();
@@ -971,6 +978,110 @@ app.post("/api/seed/menu", async (req, res) => {
     });
   } catch (error) {
     console.error("Seed error:", error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.get("/api/reports", authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    await connectDB();
+    const { startDate, endDate } = req.query;
+    
+    let dateFilter = {};
+    
+    if (startDate && endDate) {
+      const startParts = String(startDate).split('-').map(Number);
+      const endParts = String(endDate).split('-').map(Number);
+      
+      const start = new Date(Date.UTC(startParts[0], startParts[1] - 1, startParts[2], 0, 0, 0, 0));
+      const end = new Date(Date.UTC(endParts[0], endParts[1] - 1, endParts[2], 23, 59, 59, 999));
+      
+      dateFilter = { createdAt: { $gte: start, $lte: end } };
+    } else if (startDate) {
+      const startParts = String(startDate).split('-').map(Number);
+      const start = new Date(Date.UTC(startParts[0], startParts[1] - 1, startParts[2], 0, 0, 0, 0));
+      dateFilter = { createdAt: { $gte: start } };
+    }
+
+    const orders = await Order.find({
+      ...dateFilter,
+      status: { $ne: "cancelled" },
+    })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const totalOrders = orders.length;
+    const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
+    const totalTax = orders.reduce((sum, o) => sum + o.taxAmount, 0);
+    const totalSubtotal = orders.reduce((sum, o) => sum + o.subtotal, 0);
+
+    const paymentBreakdown = {};
+    orders.forEach((order) => {
+      order.payments.forEach((payment) => {
+        if (!paymentBreakdown[payment.method]) {
+          paymentBreakdown[payment.method] = { amount: 0, count: 0 };
+        }
+        paymentBreakdown[payment.method].amount += payment.amount;
+        paymentBreakdown[payment.method].count += 1;
+      });
+    });
+
+    const dineInOrders = orders.filter(o => o.type === "dine-in");
+    const takeawayOrders = orders.filter(o => o.type === "takeaway");
+
+    const itemSales = {};
+    orders.forEach((order) => {
+      order.items.forEach((item) => {
+        const key = item.productName;
+        if (!itemSales[key]) {
+          itemSales[key] = { name: item.productName, quantity: 0, revenue: 0 };
+        }
+        itemSales[key].quantity += item.quantity;
+        itemSales[key].revenue += item.price * item.quantity;
+      });
+    });
+
+    const topSellingItems = Object.values(itemSales)
+      .sort((a, b) => b.quantity - a.quantity)
+      .slice(0, 20);
+
+    res.json({
+      summary: {
+        totalOrders,
+        totalRevenue,
+        totalTax,
+        totalSubtotal,
+        averageOrderValue: totalOrders > 0 ? totalRevenue / totalOrders : 0,
+        dineInCount: dineInOrders.length,
+        dineInRevenue: dineInOrders.reduce((sum, o) => sum + o.total, 0),
+        takeawayCount: takeawayOrders.length,
+        takeawayRevenue: takeawayOrders.reduce((sum, o) => sum + o.total, 0),
+      },
+      paymentBreakdown: Object.entries(paymentBreakdown).map(([method, data]) => ({
+        method,
+        amount: data.amount,
+        count: data.count,
+      })),
+      topSellingItems,
+      orders: orders.map((o) => ({
+        _id: o._id.toString(),
+        orderNumber: o.orderNumber,
+        type: o.type,
+        tableName: o.tableName,
+        status: o.status,
+        subtotal: o.subtotal,
+        taxAmount: o.taxAmount,
+        total: o.total,
+        isPaid: o.isPaid,
+        cashierName: o.cashierName,
+        waiterName: o.waiterName,
+        customerName: o.customerName,
+        itemCount: o.items.reduce((sum, i) => sum + i.quantity, 0),
+        createdAt: o.createdAt.toISOString(),
+      })),
+    });
+  } catch (error) {
+    console.error("Reports error:", error);
     res.status(500).json({ message: error.message });
   }
 });
