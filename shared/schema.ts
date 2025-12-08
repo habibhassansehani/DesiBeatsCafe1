@@ -119,6 +119,7 @@ export type OrderStatusType = (typeof OrderStatus)[keyof typeof OrderStatus];
 export const OrderType = {
   DINEIN: "dine-in",
   TAKEAWAY: "takeaway",
+  DELIVERY: "delivery",
 } as const;
 
 export type OrderTypeType = (typeof OrderType)[keyof typeof OrderType];
@@ -147,7 +148,7 @@ export type Payment = z.infer<typeof paymentSchema>;
 export const orderSchema = z.object({
   _id: z.string(),
   orderNumber: z.number(),
-  type: z.enum(["dine-in", "takeaway"]).default("dine-in"),
+  type: z.enum(["dine-in", "takeaway", "delivery"]).default("takeaway"),
   tableId: z.string().optional(),
   tableName: z.string().optional(),
   items: z.array(orderItemSchema),

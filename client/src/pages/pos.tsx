@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Grid3X3, Receipt } from "lucide-react";
+import { Search, Grid3X3, Receipt, Truck, UtensilsCrossed } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +16,7 @@ import type {
 } from "@shared/schema";
 
 export default function POSPage() {
-  const { items, selectedTable, setSelectedTable, addToCart, handleCheckout } = useCart();
+  const { items, selectedTable, setSelectedTable, orderType, setOrderType, addToCart, handleCheckout } = useCart();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
@@ -59,12 +59,22 @@ export default function POSPage() {
 
   const handleTableSelect = (table: Table | null) => {
     setSelectedTable(table);
+    if (table) {
+      setOrderType("dine-in");
+    }
+  };
+
+  const handleTableDialogClose = () => {
+    setTableDialogOpen(false);
+    if (!selectedTable && orderType === "dine-in") {
+      setOrderType("takeaway");
+    }
   };
 
   return (
     <div className="flex flex-col h-full" data-testid="pos-page">
-      <div className="flex items-center gap-2 p-2 border-b border-border">
-        <div className="relative flex-1 max-w-xs">
+      <div className="flex items-center gap-2 p-2 border-b border-border flex-wrap">
+        <div className="relative flex-1 max-w-xs min-w-[150px]">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
@@ -75,21 +85,65 @@ export default function POSPage() {
             data-testid="input-search"
           />
         </div>
+
+        <div className="flex items-center gap-1">
+          <Button
+            size="sm"
+            variant={orderType === "delivery" ? "default" : "outline"}
+            onClick={() => {
+              setOrderType("delivery");
+              setSelectedTable(null);
+            }}
+            className="h-8 text-xs gap-1"
+            data-testid="button-filter-delivery"
+          >
+            <Truck className="h-3 w-3" />
+            Delivery
+          </Button>
+          <Button
+            size="sm"
+            variant={orderType === "dine-in" ? "default" : "outline"}
+            onClick={() => {
+              setOrderType("dine-in");
+              setTableDialogOpen(true);
+            }}
+            className="h-8 text-xs gap-1"
+            data-testid="button-filter-tables"
+          >
+            <UtensilsCrossed className="h-3 w-3" />
+            Tables
+          </Button>
+          <Button
+            size="sm"
+            variant={orderType === "takeaway" ? "default" : "outline"}
+            onClick={() => {
+              setOrderType("takeaway");
+              setSelectedTable(null);
+            }}
+            className="h-8 text-xs gap-1"
+            data-testid="button-filter-takeaway"
+          >
+            <Grid3X3 className="h-3 w-3" />
+            Takeaway
+          </Button>
+        </div>
         
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setTableDialogOpen(true)}
-          className="gap-1.5"
-          data-testid="button-select-table"
-        >
-          <Grid3X3 className="h-4 w-4" />
-          {selectedTable ? (
-            <span>T{selectedTable.number}</span>
-          ) : (
-            <span>Takeaway</span>
-          )}
-        </Button>
+        {orderType === "dine-in" && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setTableDialogOpen(true)}
+            className="gap-1.5"
+            data-testid="button-select-table"
+          >
+            <Grid3X3 className="h-4 w-4" />
+            {selectedTable ? (
+              <span>T{selectedTable.number}</span>
+            ) : (
+              <span>Select Table</span>
+            )}
+          </Button>
+        )}
       </div>
 
       <CategoryTabs
@@ -127,7 +181,7 @@ export default function POSPage() {
 
       <TableSelectDialog
         open={tableDialogOpen}
-        onClose={() => setTableDialogOpen(false)}
+        onClose={handleTableDialogClose}
         onSelect={handleTableSelect}
         tables={tables}
         selectedTableId={selectedTable?._id}

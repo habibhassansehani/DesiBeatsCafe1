@@ -122,7 +122,7 @@ const paymentSchema = new Schema({
 export interface IOrder extends Document {
   _id: mongoose.Types.ObjectId;
   orderNumber: number;
-  type: "dine-in" | "takeaway";
+  type: "dine-in" | "takeaway" | "delivery";
   tableId?: mongoose.Types.ObjectId;
   tableName?: string;
   items: Array<{
@@ -160,7 +160,7 @@ export interface IOrder extends Document {
 
 const orderSchema = new Schema<IOrder>({
   orderNumber: { type: Number, required: true, unique: true },
-  type: { type: String, enum: ["dine-in", "takeaway"], default: "dine-in" },
+  type: { type: String, enum: ["dine-in", "takeaway", "delivery"], default: "takeaway" },
   tableId: { type: Schema.Types.ObjectId, ref: "Table" },
   tableName: { type: String },
   items: [orderItemSchema],

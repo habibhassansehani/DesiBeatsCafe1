@@ -32,15 +32,6 @@ export function CategoryTabs({
   return (
     <div className="sticky top-0 z-40 bg-background border-b border-border p-2">
       <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12 gap-1.5">
-        <Button
-          size="sm"
-          variant={selectedCategoryId === null ? "default" : "outline"}
-          className="font-medium text-xs h-8 px-2 truncate"
-          onClick={() => onSelectCategory(null)}
-          data-testid="button-category-all"
-        >
-          All
-        </Button>
         {activeCategories.map((category) => {
           const isSelected = selectedCategoryId === category._id;
           const categoryColor = category.color || "#6366f1";
@@ -55,7 +46,7 @@ export function CategoryTabs({
                 backgroundColor: categoryColor,
                 borderColor: categoryColor,
               }}
-              onClick={() => onSelectCategory(category._id)}
+              onClick={() => onSelectCategory(isSelected ? null : category._id)}
               data-testid={`button-category-${category._id}`}
             >
               {category.name}

@@ -128,7 +128,7 @@ const paymentSchema = new mongoose.Schema({
 
 const orderSchema = new mongoose.Schema({
   orderNumber: { type: Number, required: true, unique: true },
-  type: { type: String, enum: ["dine-in", "takeaway"], default: "dine-in" },
+  type: { type: String, enum: ["dine-in", "takeaway", "delivery"], default: "takeaway" },
   tableId: { type: mongoose.Schema.Types.ObjectId, ref: "Table" },
   tableName: { type: String },
   items: [orderItemSchema],

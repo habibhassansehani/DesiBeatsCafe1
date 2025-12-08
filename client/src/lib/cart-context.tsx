@@ -1,13 +1,17 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, useRef, type ReactNode } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth-context";
+import { printReceipt } from "@/lib/print-utils";
 import type { CartItem, Product, Table, Payment, Order, Settings } from "@shared/schema";
+
+type OrderType = "takeaway" | "dine-in" | "delivery";
 
 interface CartContextType {
   items: CartItem[];
   selectedTable: Table | null;
+  orderType: OrderType;
   paymentModalOpen: boolean;
   isSubmitting: boolean;
   addToCart: (product: Product, variant?: string) => void;
@@ -16,6 +20,7 @@ interface CartContextType {
   updateNotes: (itemId: string, notes: string) => void;
   clearCart: () => void;
   setSelectedTable: (table: Table | null) => void;
+  setOrderType: (type: OrderType) => void;
   setPaymentModalOpen: (open: boolean) => void;
   handleCheckout: () => void;
   handlePaymentConfirm: (payments: Payment[]) => Promise<void>;
@@ -28,25 +33,42 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   const [items, setItems] = useState<CartItem[]>([]);
   const [selectedTable, setSelectedTable] = useState<Table | null>(null);
+  const [orderType, setOrderType] = useState<OrderType>("takeaway");
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
 
   const { data: settings } = useQuery<Settings>({
     queryKey: ["/api/settings"],
   });
 
+  const prevSelectedTableRef = useRef<Table | null>(null);
+  useEffect(() => {
+    if (prevSelectedTableRef.current !== null && selectedTable === null && orderType === "dine-in") {
+      setOrderType("takeaway");
+    }
+    prevSelectedTableRef.current = selectedTable;
+  }, [selectedTable, orderType]);
+
   const createOrderMutation = useMutation({
     mutationFn: async (orderData: any) => {
       return apiRequest<Order>("POST", "/api/orders", orderData);
     },
-    onSuccess: () => {
+    onSuccess: (order: Order) => {
       queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tables"] });
       setItems([]);
       setSelectedTable(null);
+      setOrderType("takeaway");
       toast({
         title: "Order Created",
         description: "The order has been sent to the kitchen",
       });
+      
+      // Print 2 copies of receipt on payment confirmation
+      if (order.isPaid) {
+        setTimeout(() => {
+          printReceipt(order, settings || null, 2);
+        }, 500);
+      }
     },
     onError: (error: any) => {
       toast({
@@ -118,6 +140,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const clearCart = useCallback(() => {
     setItems([]);
     setSelectedTable(null);
+    setOrderType("takeaway");
   }, []);
 
   const handleCheckout = useCallback(() => {
@@ -129,8 +152,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
       });
       return;
     }
+    if (orderType === "dine-in" && !selectedTable) {
+      toast({
+        title: "Select a table",
+        description: "Please select a table for dine-in orders",
+        variant: "destructive",
+      });
+      return;
+    }
     setPaymentModalOpen(true);
-  }, [items.length, toast]);
+  }, [items.length, orderType, selectedTable, toast]);
 
   const handlePaymentConfirm = useCallback(async (payments: Payment[]) => {
     const taxPercentage = settings?.taxPercentage || 16;
@@ -142,9 +173,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const total = subtotal + taxAmount;
 
     const orderData = {
-      type: selectedTable ? "dine-in" : "takeaway",
-      tableId: selectedTable?._id,
-      tableName: selectedTable?.name,
+      type: orderType === "dine-in" && selectedTable ? "dine-in" : orderType,
+      tableId: orderType === "dine-in" ? selectedTable?._id : undefined,
+      tableName: orderType === "dine-in" ? selectedTable?.name : undefined,
       items: items.map((item) => ({
         productId: item.productId,
         productName: item.productName,
@@ -167,13 +198,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     createOrderMutation.mutate(orderData);
     setPaymentModalOpen(false);
-  }, [items, selectedTable, settings?.taxPercentage, user, createOrderMutation]);
+  }, [items, selectedTable, orderType, settings?.taxPercentage, user, createOrderMutation]);
 
   return (
     <CartContext.Provider
       value={{
         items,
         selectedTable,
+        orderType,
         paymentModalOpen,
         isSubmitting: createOrderMutation.isPending,
         addToCart,
@@ -182,6 +214,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         updateNotes,
         clearCart,
         setSelectedTable,
+        setOrderType,
         setPaymentModalOpen,
         handleCheckout,
         handlePaymentConfirm,
