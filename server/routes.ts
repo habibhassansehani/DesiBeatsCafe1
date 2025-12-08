@@ -536,13 +536,14 @@ export async function registerRoutes(
         });
       }
 
+      const orderObj = order.toObject();
       res.status(201).json({
-        ...order.toObject(),
+        ...orderObj,
         _id: order._id.toString(),
         tableId: order.tableId?.toString(),
         cashierId: order.cashierId?.toString(),
         waiterId: order.waiterId?.toString(),
-        items: order.items.map(item => ({
+        items: orderObj.items.map((item: any) => ({
           ...item,
           productId: item.productId.toString()
         })),
