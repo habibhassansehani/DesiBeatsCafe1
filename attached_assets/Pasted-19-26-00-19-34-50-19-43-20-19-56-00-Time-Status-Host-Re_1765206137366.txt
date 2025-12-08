@@ -1,0 +1,139 @@
+19:26:00
+19:34:50
+19:43:20
+19:56:00
+Time
+Status
+Host
+Request
+Messages
+Dec 08 19:54:01.25
+GET
+304
+desi-beats-cafe1.vercel.app
+/api/settings
+Dec 08 19:54:01.25
+GET
+304
+desi-beats-cafe1.vercel.app
+/api/dashboard/stats
+Dec 08 19:53:56.88
+GET
+404
+desi-beats-cafe1.vercel.app
+/api/reports
+Dec 08 19:53:55.60
+GET
+404
+desi-beats-cafe1.vercel.app
+/api/reports
+Dec 08 19:53:50.10
+GET
+304
+desi-beats-cafe1.vercel.app
+/api/categories
+Dec 08 19:53:50.02
+GET
+304
+desi-beats-cafe1.vercel.app
+/api/tables
+Dec 08 19:53:50.02
+GET
+304
+desi-beats-cafe1.vercel.app
+/api/products
+Dec 08 19:53:49.96
+GET
+304
+desi-beats-cafe1.vercel.app
+/api/settings
+Dec 08 19:53:26.87
+GET
+200
+desi-beats-cafe1-okboxlsmy-habibs-projects-8d54d666.vercel.app
+/api/settings
+Dec 08 19:53:26.82
+GET
+200
+desi-beats-cafe1-okboxlsmy-habibs-projects-8d54d666.vercel.app
+/api/settings
+Dec 08 19:52:01.56
+GET
+304
+desi-beats-cafe1.vercel.app
+/api/categories
+Dec 08 19:52:01.56
+GET
+304
+desi-beats-cafe1.vercel.app
+/api/products
+Dec 08 19:51:58.20
+GET
+304
+desi-beats-cafe1.vercel.app
+/api/dashboard/stats
+Dec 08 19:51:55.74
+GET
+404
+desi-beats-cafe1.vercel.app
+/api/reports
+Dec 08 19:51:54.43
+GET
+404
+desi-beats-cafe1.vercel.app
+/api/reports
+Dec 08 19:51:54.42
+GET
+304
+desi-beats-cafe1.vercel.app
+/api/settings
+Dec 08 19:51:43.24
+GET
+304
+desi-beats-cafe1.vercel.app
+/api/tables
+Dec 08 19:51:43.24
+GET
+304
+desi-beats-cafe1.vercel.app
+/api/categories
+Dec 08 19:51:43.23
+GET
+304
+desi-beats-cafe1.vercel.app
+/api/products
+Dec 08 19:51:43.16
+GET
+304
+desi-beats-cafe1.vercel.app
+/api/settings
+Dec 08 19:51:24.93
+GET
+200
+desi-beats-cafe1-isb3wtpqk-habibs-projects-8d54d666.vercel.app
+/api/settings
+Dec 08 19:51:24.73
+GET
+200
+desi-beats-cafe1-isb3wtpqk-habibs-projects-8d54d666.vercel.app
+/api/settings
+Dec 08 19:51:20.91
+GET
+304
+desi-beats-cafe1.vercel.app
+/api/tables
+Dec 08 19:51:20.91
+GET
+304
+desi-beats-cafe1.vercel.app
+/api/settings
+Dec 08 19:51:20.91
+GET
+304
+desi-beats-cafe1.vercel.app
+/api/products
+Dec 08 19:51:20.90
+GET
+304
+desi-beats-cafe1.vercel.app
+/api/categories
