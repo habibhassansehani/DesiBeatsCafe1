@@ -151,10 +151,10 @@ export default function POSPage() {
           size="sm"
           variant={selectedCategoryId === null ? "default" : "outline"}
           onClick={() => setSelectedCategoryId(null)}
-          className="h-8 text-xs font-bold px-6 mr-1"
+          className="h-8 text-xs font-bold px-6 mr-1 border-2"
           data-testid="button-category-all"
         >
-          All
+          Categories
         </Button>
       </div>
 
