@@ -154,7 +154,7 @@ export default function POSPage() {
           className="h-8 text-xs font-bold px-6 mr-1 border-2"
           data-testid="button-category-all"
         >
-          Categories
+          All Categories
         </Button>
       </div>
 
