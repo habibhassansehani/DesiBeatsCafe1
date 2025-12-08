@@ -39,7 +39,7 @@ export function CategoryTabs({
             <Button
               key={category._id}
               size="sm"
-              className={`font-medium text-xs h-8 px-2 text-white truncate ${
+              className={`font-medium text-xs h-auto min-h-8 px-2 py-1 text-white whitespace-normal text-center leading-tight ${
                 isSelected ? "ring-2 ring-offset-1 ring-foreground/20" : "opacity-85"
               }`}
               style={{
