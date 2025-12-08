@@ -144,6 +144,18 @@ export default function POSPage() {
             )}
           </Button>
         )}
+
+        <div className="flex-1" />
+        
+        <Button
+          size="sm"
+          variant={selectedCategoryId === null ? "default" : "outline"}
+          onClick={() => setSelectedCategoryId(null)}
+          className="h-8 text-xs"
+          data-testid="button-category-all"
+        >
+          All
+        </Button>
       </div>
 
       <CategoryTabs
