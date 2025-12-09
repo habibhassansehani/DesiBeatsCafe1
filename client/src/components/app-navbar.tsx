@@ -86,18 +86,20 @@ export function AppNavbar() {
   const isAdminRoute = location.startsWith("/admin") || location === "/dashboard";
 
   return (
-    <nav className="h-14 border-b border-primary/20 bg-primary shrink-0 sticky top-0 z-50">
+    <nav className="h-14 border-b border-amber-800/30 bg-neutral-900 shrink-0 sticky top-0 z-50">
       <div className="flex items-center justify-between h-full px-4 gap-4">
         <div className="flex items-center gap-4 min-w-0 flex-1">
           <Link href="/pos" className="flex items-center gap-2 shrink-0">
-            <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
-              <DollarSign className="w-4 h-4 text-white" />
-            </div>
+            <img 
+              src="/assets/WhatsApp_Image_2025-11-21_at_20.00.27_83f196f8_1765299453609.jpg" 
+              alt="Desi Beats Café" 
+              className="w-10 h-10 rounded-full object-cover"
+            />
             <div className="hidden sm:flex flex-col">
-              <span className="font-semibold text-sm leading-tight text-white" data-testid="text-navbar-title">
+              <span className="font-semibold text-sm leading-tight text-amber-200" data-testid="text-navbar-title">
                 Desi Beats
               </span>
-              <span className="text-[10px] text-white/70 leading-tight">POS System</span>
+              <span className="text-[10px] text-amber-200/70 leading-tight">POS System</span>
             </div>
           </Link>
 
@@ -114,8 +116,8 @@ export function AppNavbar() {
                   className={cn(
                     "gap-1.5 transition-colors",
                     location === item.url
-                      ? "bg-white/20 text-white hover:bg-white/30"
-                      : "text-white/90 hover:bg-white/10 hover:text-white"
+                      ? "bg-amber-800/40 text-amber-100 hover:bg-amber-800/50"
+                      : "text-amber-200/90 hover:bg-amber-800/20 hover:text-amber-100"
                   )}
                 >
                   <item.icon className="w-4 h-4" />
@@ -133,8 +135,8 @@ export function AppNavbar() {
                     className={cn(
                       "gap-1.5 transition-colors",
                       isAdminRoute
-                        ? "bg-white/20 text-white hover:bg-white/30"
-                        : "text-white/90 hover:bg-white/10 hover:text-white"
+                        ? "bg-amber-800/40 text-amber-100 hover:bg-amber-800/50"
+                        : "text-amber-200/90 hover:bg-amber-800/20 hover:text-amber-100"
                     )}
                     data-testid="button-admin-menu"
                   >
@@ -167,7 +169,7 @@ export function AppNavbar() {
           <div className="md:hidden">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-white hover:bg-white/10" data-testid="button-mobile-menu">
+                <Button variant="ghost" size="icon" className="text-amber-200 hover:bg-amber-800/20" data-testid="button-mobile-menu">
                   <Menu className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
@@ -215,21 +217,21 @@ export function AppNavbar() {
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <ThemeToggle className="text-white hover:bg-white/10" />
+          <ThemeToggle className="text-amber-200 hover:bg-amber-800/20" />
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="gap-2 px-2 hover:bg-white/10" data-testid="button-user-menu">
+              <Button variant="ghost" className="gap-2 px-2 hover:bg-amber-800/20" data-testid="button-user-menu">
                 <Avatar className="w-7 h-7">
                   <AvatarFallback className={cn("text-xs", getRoleColor(user?.role || ""))}>
                     {user?.name ? getInitials(user.name) : "?"}
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden sm:flex flex-col items-start">
-                  <span className="text-xs font-medium text-white" data-testid="text-user-name">
+                  <span className="text-xs font-medium text-amber-100" data-testid="text-user-name">
                     {user?.name || "Unknown User"}
                   </span>
-                  <span className="text-[10px] text-white/70 capitalize" data-testid="text-user-role">
+                  <span className="text-[10px] text-amber-200/70 capitalize" data-testid="text-user-role">
                     {user?.role || "Guest"}
                   </span>
                 </div>
